@@ -1,4 +1,29 @@
 
+// Matrix functions
+
+/**
+ * Creates a matrix full of 0's 
+ * 
+ * @param {Number} rows Row count
+ * @param {Number} cols Column Count
+ * @returns {Matrix} Empty Matrix 
+ */
+export function createEmptyMatrix( rows, cols ){
+
+    let matrixList = [];
+    for ( let r = 0; r < rows; r++ ){
+
+        matrixList[r] = [];
+
+        for (let c = 0; c < cols; c++){
+
+            matrixList[r][c] = 0
+        }
+    }
+
+    return new Matrix( matrixList)
+}
+
 // Classes
 
 export class Matrix{
@@ -534,7 +559,7 @@ export class Point3{
      */
     repr(){
 
-        console.log(`Point3: ${this.x, this.y, this.z} `);
+        console.log(`Point3: ${this.x}, ${this.y}, ${this.z} `);
     }
 
     /**
@@ -658,152 +683,6 @@ export class Point3{
         return new Point3(x, y, z);
     }
 
-}
-
-export class Point4{
-        // A 4D point class
-
-    constructor(x, y, z, w){
-
-        this.x = x;
-        this.y = y;
-        this.z = z;
-        this.w = w;
-    }
-
-    /**
-     * Logs the Point3 to the console.
-     */
-    repr(){
-
-        console.log(`Point4: ${this.x, this.y, this.z, this.w} `);
-    }
-
-    /**
-     * Returns a copy of this point.
-     * @returns {Point4} Copy of this point
-     */
-    copy(){
-
-        return new Point4( this.x, this.y, this.z, this.w );
-    }
-
-    // Vector Calculations
-
-    /**
-     * Returns a Vector from this point to otherPoint.
-     * @param {Point} otherPoint The point, to create a vector to.
-     * @returns {Vector4} Vector from this to otherPoint.  
-     */
-    vectorToPoint(otherPoint ){
-
-        const x = otherPoint.x - this.x;
-        const y = otherPoint.y - this.y;
-        const z = otherPoint.z - this.z;
-        const w = otherPoint.w - this.w;
-
-        return new Vector4(x, y, z);
-    }
-
-    /**
-     * Returns a Vector from otherPoint to this point.
-     * @param {Point} otherPoint The point, to create a vector from.
-     * @returns {Vector4} Vector from otherPoint to this.
-     */
-    vectorFromPoint(otherPoint ){
-
-        const x = this.x - otherPoint.x;
-        const y = this.y - otherPoint.y;
-        const z = this.z - otherPoint.z;
-        const w = this.w - otherPoint.w;
-
-        return new Vector4(x, y, z, w);
-    }
-
-    /**
-     * Moves this point by the inputted vector
-     * @param {Vector4} translationVector Vector to translate this point by
-     */
-    translate(translationVector ){
-
-        this.x = this.x + translationVector.x;
-        this.y = this.y + translationVector.y;
-        this.z = this.z + translationVector.z;
-        this.w = this.w + translationVector.w;
-
-    }
-
-    // Calculations
-
-    /**
-     * Does a matrix multiplication on this point and the other matrix; and 
-     * sets it to this point:
-     * 
-     * * Point = A
-     * * otherMatrix = B
-     * * This = Matrix multiplication of A x B
-     *  
-     * 
-     * Point dimension must equal B columns,
-     * 
-     * Multiply matrix size is: Point dimension x 1 column. 
-     * 
-     * @param {Matrix} otherMatrix 
-     */
-    matrixMultiply( otherMatrix ){
-
-        pointMatrix = new Matrix([ [this.x], [this.y], [this.z], [this.w] ]);
-        pointMatrix.multiply(otherMatrix);
-
-        this.x = pointMatrix[0][0];
-        this.y = pointMatrix[1][0];
-        this.z = pointMatrix[2][0];
-        this.w = pointMatrix[3][0];
-    }
-
-    // Return Calculations
-
-    /**
-     * Returns a copy of this point translated 
-     * @param {Vector4} translationVector Vector to translate the point by
-     * @returns {Point4} Translated point
-     */
-    translated(translationVector ){
-
-        let newPoint = new Point4(this.x, this.y, this.z, this.w );
-        newPoint.translate(translationVector );
-
-        return newPoint;
-    }
-
-    /**
-     * Does a matrix multiplication on this point and the other matrix; and 
-     * sets returns it:
-     * 
-     * * Point = A
-     * * otherMatrix = B
-     * * This = Matrix multiplication of A x B
-     *  
-     * 
-     * Point dimension must equal B columns,
-     * 
-     * Multiply matrix size is: Point dimension x 1 column. 
-     * 
-     * @param {Matrix} otherMatrix 
-     * @returns {Point4}
-     */
-    matrixMultiplied( otherMatrix ){
-
-        pointMatrix = new Matrix([ [this.x], [this.y], [this.z], [this.w] ]);
-        pointMatrix.multiply(otherMatrix);
-
-        const x = pointMatrix[0][0];
-        const y = pointMatrix[1][0];
-        const z = pointMatrix[2][0];
-        const w = pointMatrix[3][0];
-
-        return new Point4(x, y, z, w);
-    }
 }
 
 // Vector
@@ -1087,7 +966,7 @@ export class Vector3{
      */
     repr(){
 
-        console.log(`Vector3: ${this.x, this.y, this.z} `);
+        console.log(`Vector3: ${this.x}, ${this.y}, ${this.z} `);
     }
 
     /**
@@ -1167,13 +1046,24 @@ export class Vector3{
         this.z = this.z / magnitude;
     }
 
+    
+    /**
+     * Normalises then scales this vector to the inputted factor.
+     * @param {Number} scaleFactor New scale for this vector.
+     */
+    scaleTo(scaleFactor ){
+        this.normalise();
+        this.x = this.x * scaleFactor;
+        this.y = this.y * scaleFactor;
+        this.z = this.z * scaleFactor;
+    }
+
     /**
      * Scales this vector by the inputted factor.
      * @param {Number} scaleFactor Factor to scale this vector by.
      */
     scale(scaleFactor ){
 
-        this.normalise();
         this.x = this.x * scaleFactor;
         this.y = this.y * scaleFactor;
         this.z = this.z * scaleFactor;
@@ -1321,13 +1211,26 @@ export class Vector3{
     }
 
     /**
+     * Returns a copy of this vector scaled to the inputted factor.
+     * @param {Number} scaleFactor New scale for the copy vector.
+     * @returns {Vector3} Scaled copy of this vector.
+     */
+    scaledTo(scaleFactor ){
+
+        let copyVector = this.copy();
+        copyVector.scaleTo(scaleFactor);
+
+        return copyVector;
+    }
+
+    /**
      * Returns a scaled copy this vector by the inputted factor.
      * @param {Number} scaleFactor Factor to scale the vector by.
      * @returns {Vector3} Scaled copy of this vector.
      */
     scaled(scaleFactor ){
 
-        let copyVector = this.normalised();
+        let copyVector = this.copy();
         copyVector.scale(scaleFactor);
 
         return copyVector;
@@ -1427,239 +1330,41 @@ export class Vector3{
     }
 }
 
-export class Vector4{
-    // A 4D vector class
+// Ray
+
+export class Ray3{
 
     /**
-     * Creates a 4d vector with x, y, z, w.
+     * Creates 3D ray from a start position and direction.
      * 
-     * @param {Number} x X value for the vector.
-     * @param {Number} y Y value for the vector.
-     * @param {Number} z Z value for the vector.
-     * @param {Number} w W value for the vector.
+     * @param {Point3} startPos Start position / origin of the ray.
+     * @param {Vector3} directionVector Vector for the direction of the vector.
      */
-    constructor (x, y, z, w ){
+    constructor( startPos, directionVector ){
 
-        this.x = x;
-        this.y = y;
-        this.z = z;
-        this.w = w;
+        this.start = startPos;
+        this.direction = directionVector;
     }
 
-    /**
-     * Logs the Vector4 to the console.
-     */
-    repr(){
+}
 
-        console.log(`Vector4: ${this.x, this.y, this.z, this.w} `);
-    }
+export class RayResult3{
+    // Ray3 Hit Result class
 
     /**
-     * Returns a copy of this Vector.
-     * @returns {Vector4} Copy of this Vector.
-     */
-    copy(){
-
-        return new Vector4( this.x, this.y, this.z, this.w );
-    }
-
-    // Variables
-
-    /**
-     * Return the vector's magnitude.
-     * @returns {Number} Magnitude of vector.
-     */
-    getMagnitude(){
-        
-        return Math.sqrt( ( this.x ** 2) + ( this. y ** 2) + ( this.z ** 2) + (this.w ** 2) );
-    }
-
-    // Vector Calculations
-
-    /**
-     * Adds the inputted vector to this vector:
-     * this = this + otherVector
-     * @param {Vector4} otherVector Vector to add to this vector.
-     */
-    addition(otherVector ){
-
-        this.x = this.x + otherVector.x;
-        this.y = this.y + otherVector.y;
-        this.z = this.z + otherVector.z;
-        this.w = this.w + otherVector.w;
-    }
-
-    /**
-     * Subtracts the inputted vector from this vector:
-     * this = this - otherVector
-     * @param {Vector4} otherVector Vector to subtract to this vector.
-     */
-    subtraction(otherVector ){
-
-        this.x = this.x - otherVector.x;
-        this.y = this.y - otherVector.y;
-        this.z = this.z - otherVector.z;
-        this.w = this.w - otherVector.w;
-    }
-
-    // Calculations
-
-    /**
-     * Normalises this vector to a unit vector, with magnitude 1.
-     */
-    normalise(){
-
-        let magnitude = this.getMagnitude();
-        this.x = this.x / magnitude;
-        this.y = this.y / magnitude;
-        this.z = this.z / magnitude;
-        this.w = this.w / magnitude;
-    }
-
-    /**
-     * Scales this vector by the inputted factor.
-     * @param {Number} scaleFactor Factor to scale this vector by.
-     */
-    scale(scaleFactor ){
-
-        this.normalise();
-        this.x = this.x * scaleFactor;
-        this.y = this.y * scaleFactor;
-        this.z = this.z * scaleFactor;
-        this.w = this.w * scaleFactor;
-    }
-
-    /**
-     * Does a matrix multiplication on this vector and the other matrix; and 
-     * sets it to this vector:
+     * Creates a hit result for a Ray3.
      * 
-     * * Vector = A
-     * * otherMatrix = B
-     * * This = Matrix multiplication of A x B
-     *  
-     * 
-     * Vector dimension must equal B columns,
-     * 
-     * Multiply matrix size is: Vector dimension x 1 column. 
-     * 
-     * @param {Matrix} otherMatrix 
+     * @param {Point3} position Position of the hit.
+     * @param {Vector3} normalVector Normal vector for the hit.
+     * @param {Number} time Scalar value (doesnt have to be time) for the hit.
+     * @param {Number} sphereIndex Index of the colliding sphere.
      */
-    matrixMultiply( otherMatrix ){
+    constructor( position, normalVector, time, sphereIndex){
 
-        vectorMatrix = new Matrix([ [this.x], [this.y], [this.z], [this.w] ]);
-        vectorMatrix.multiply(otherMatrix);
-
-        this.x = vectorMatrix[0][0];
-        this.y = vectorMatrix[1][0];
-        this.z = vectorMatrix[2][0];
-        this.w = vectorMatrix[3][0];
-    }
-
-    // Return Calculations
-    
-    /**
-     * Adds the inputted vector to this vector and returns it.
-     * 
-     * @param {Vector4} otherVector Vector to add to this vector.
-     * @returns {Vector4} Returns sum of this + inputted.
-     */
-    added(otherVector ){
-
-        const x = this.x + otherVector.x;
-        const y = this.y + otherVector.y;
-        const z = this.z + otherVector.z;
-        const w = this.w + otherVector.w;
-
-        return new Vector4(x, y, z, w);
-    }
-
-    /**
-     * Subtracts the inputted vector from this vector and returns it.
-     * 
-     * @param {Vector4} otherVector Vector to subtract to this vector.
-     * @returns {Vector4} Returns sum of this - inputted.
-     */
-    subbed(otherVector ){
-
-        const x = this.x - otherVector.x;
-        const y = this.y - otherVector.y;
-        const z = this.z - otherVector.z;
-        const w = this.w + otherVector.w;
-
-        return new Vector4(x, y, z, w);
-    }
-
-    /**
-     * Returns a normalised copy of this vector, with magnitude 1.
-     * @returns {Vector4} Normalised copy of this vector.
-     */
-    normalised(){
-
-        let magnitude = this.getMagnitude();
-        let x = this.x / magnitude;
-        let y = this.y / magnitude;
-        let z = this.z / magnitude;
-        let w = this.w / magnitude;
-
-        return new Vector4(x, y, z, w );
-    }
-
-    /**
-     * Returns a scaled copy this vector by the inputted factor.
-     * @param {Number} scaleFactor Factor to scale the vector by.
-     * @returns {Vector4} Scaled copy of this vector.
-     */
-    scaled(scaleFactor ){
-
-        let copyVector = this.normalised();
-        copyVector.scale(scaleFactor);
-
-        return copyVector;
-    }
-
-    /**
-     * Returns the dot product of this and the inputted vector
-     * @param {Vector4} otherVector Other vector to dot product against.
-     * @returns {Number} The dot product of this and otherVector.
-     */
-    dot(otherVector ){
-
-        let x = this.x * otherVector.x;
-        let y = this.y * otherVector.y;
-        let z = this.z * otherVector.z;
-        let w = this.w * otherVector.w;
-
-        return x + y + z + w;
-    }
-
-
-    /**
-     * Does a matrix multiplication on this vector and the other matrix; and 
-     * sets returns it:
-     * 
-     * * Vector = A
-     * * otherMatrix = B
-     * * This = Matrix multiplication of A x B
-     *  
-     * 
-     * Vector dimension must equal B columns,
-     * 
-     * Multiply matrix size is: Vector dimension x 1 column. 
-     * 
-     * @param {Matrix} otherMatrix 
-     * @returns {Vector4}
-     */
-    matrixMultiplied( otherMatrix ){
-
-        vectorMatrix = new Matrix([ [this.x], [this.y], [this.z], [this.w] ]);
-        vectorMatrix.multiply(otherMatrix);
-
-        const x = vectorMatrix[0][0];
-        const y = vectorMatrix[1][0];
-        const z = vectorMatrix[2][0];
-        const w = vectorMatrix[3][0];
-
-        return new Vector4(x, y, z, w);
+        this.pos = position;
+        this.normal = normalVector;
+        this.t = time; // Any scalar value for interpolating
+        this.sphereIndex = sphereIndex;
     }
 
 }
@@ -1671,14 +1376,16 @@ export class Sphere{
 
     /**
      * Creates a sphere using centre-point and a radius.
+     * 
      * @param {Point3} centre Centre of the sphere.
      * @param {Number} radius Radius of the sphere.
+     * @param {Number} index Index in the list.
      */
-    constructor( centre, radius ){
+    constructor( centre, radius, index ){
 
         this.centre = centre;
         this.radius = radius;
+        this.index = index;
     }
 
-    
 }
