@@ -1,3 +1,4 @@
+// Functions
 
 // Matrix functions
 
@@ -24,7 +25,71 @@ export function createEmptyMatrix( rows, cols ){
     return new Matrix( matrixList)
 }
 
+// Vector & Point Functions
+
+// Conversions
+
+/**
+ * Converts from Vector4 to Vector3, by stripping the w value.
+ *  
+ * @param {Vector4} vectorFour 
+ * @returns {Vector3} Stripped vector3 value. 
+ */
+export function stipWToVector3( vectorFour ){
+
+    return new Vector3( vectorFour.x, vectorFour.y, vectorFour.z );
+}
+
+/**
+ * Converts from Vector3 to Vector2, by stripping the z value.
+ *  
+ * @param {Vector3} vectorThree
+ * @returns {Vector2} Stipped vector 2 value.
+ */
+export function stipZToVector2( vectorThree ){
+
+    return new Vector2( vectorThree.x, vectorThree.y );
+}
+
+/**
+ * Converts from point4 to point3, by stripping the w value.
+ *  
+ * @param {Point4} pointFour 
+ * @returns {Point3} Stripped vector3 value. 
+ */
+export function stipWToPoint3( pointFour ){
+
+    return new Point3( pointFour.x, pointFour.y, pointFour.z );
+}
+
+/**
+ * Converts from point3 to point2, by stripping the z value.
+ *  
+ * @param {Point3} pointThree
+ * @returns {Point2} Stipped vector 2 value.
+ */
+export function stipZToPoint2( pointThree ){
+
+    return new Point2( pointThree.x, pointThree.y );
+}
+
+
+
 // Classes
+
+export class Frustum{
+
+    constructor( near, far, left, right, top, bottom ){
+
+        this.near = near;
+        this.far = far;
+        this.left = left;
+        this.right = right;
+        this.top = top;
+        this.bottom = bottom;
+    }
+}
+
 
 export class Matrix{
 
@@ -403,321 +468,467 @@ export class Matrix{
 
 }
 
-// Points
+/*
+    BV <- BT -> BP
+    |     |     |
+    V2 <- T2 -> B2
+    |     |     |
+    V3 <- T3 -> B3
+    |     |     |
+    V4 <- T4 -> B4
 
-export class Point2{
-    // A 2D point class
+    BaseVector & BasePoint Inherit from BaseTuple
 
-    constructor(x, y){
+    Tuple2,3,4 Inherit BaseTuple
+    Vector2,3,4 Inherit BaseVector
+    Point2,3,4 Inherit BasePoint
 
-        this.x = x;
-        this.y = y;
+    Vector2 & Point2 *also* Inherit from Tuple2
+    Vector3 & Point3 *also* Inherit from Tuple3
+    Vector4 & Point4 *also* Inherit from Tuple4
 
-    }
+*/
 
-    /**
-     * Logs the Point2 to the console.
-     */
-    repr(){
+// Base Vector, Ray, Point Class
 
-        console.log(`Point2: ${this.x, this.y} `);
-    }
-    
-    
-    /**
-     * Returns a copy of this point.
-     * @returns {Point2} Copy of this point
-     */
-    copy(){
-
-        return new Point2( this.x, this.y );
-    }
-
-
-    // Vector Calculations
+/**
+ * @template thisName
+ */
+class BaseTuple{
 
     /**
-     * Returns a Vector from this point to otherPoint.
-     * @param {Point} otherPoint The point, to create a vector to.
-     * @returns {Vector2} Vector from this to otherPoint.
-     */
-    vectorToPoint(otherPoint ){
-        
-        let x = otherPoint.x - this.x;
-        let y = otherPoint.y - this.y;
-
-        return new Vector2(x, y);
-    }
-
-    /**
-     * Returns a Vector from otherPoint to this point.
-     * @param {Point} otherPoint The point, to create a vector from.
-     * @returns {Vector2} Vector from otherPoint to this.
-     */
-    vectorFromPoint(otherPoint ){
-
-        let x = this.x - otherPoint.x;
-        let y = this.y - otherPoint.y;
-
-        return new Vector2(x, y);
-    }
-
-    /**
-     * Moves this point by the inputted vector
-     * @param {Vector2} translationVector Vector to translate this point by
-     */
-    translate(translationVector ){
-
-        this.x = this.x + translationVector.x;
-        this.y = this.y + translationVector.y;
-    }
-
-
-    // Calculations
-
-    /**
-     * Does a matrix multiplication on this point and the other matrix; and 
-     * sets it to this point:
+     * Subtracts the inputted object from this:
+     * return = this + otherObject.
      * 
-     * * Point = A
+     * @param {thisName} otherObject object to add from this.
+     */
+    added(otherObject ){
+
+        let copyObject = this.copy();
+        copyObject.add(otherObject );
+
+        return copyObject;
+    }
+
+    /**
+     * Subtracts the inputted object from this:
+     * return = this - otherObject.
+     * 
+     * @param {thisName} otherObject object to sub from this.
+     */
+    subbed(otherObject ){
+
+        let copyObject = this.copy();
+        copyObject.sub(otherObject );
+
+        return copyObject;
+    }
+
+    /**
+     * Does a matrix multiplication on this vector and the other matrix; and 
+     * sets returns it:
+     * 
+     * * Vector = A
      * * otherMatrix = B
      * * This = Matrix multiplication of A x B
      *  
      * 
-     * Point dimension must equal B columns,
+     * Vector dimension must equal B columns,
      * 
-     * Multiply matrix size is: Point dimension x 1 column. 
+     * Multiply matrix size is: Vector dimension x 1 column. 
+     * 
+     * @param {Matrix} otherMatrix 
+     * @returns {thisName}
+     */
+    matrixMultiplied( otherMatrix ){
+
+        const copyVector = this.copy()
+        copyVector.matrixMultiply( otherMatrix );
+
+        return copyVector;
+    }
+
+}
+
+/**
+ * @template thisName
+ */
+class Tuple2 extends BaseTuple{
+
+    /**
+     * Creates a 2d object with x, y.
+     * 
+     * @param {Number} x X value for the vector.
+     * @param {Number} y Y value for the vector.
+     */
+    constructor (x, y ){
+        super();
+        this.x = x;
+        this.y = y;
+    }
+
+    /**
+     * Logs the object to the console.
+     */
+    repr(){
+
+        console.log(`${this.constructor.name}: ${this.x}, ${this.y} `);
+    }
+
+    /**
+     * Returns a copy of this Vector.
+     * 
+     * @returns {thisName} Copy of this Vector.
+     */
+    copy(){
+
+        return new this.constructor( this.x, this.y );
+    }
+
+
+    // Calculations
+        
+    /**
+     * Adds the inputted object to this:
+     * this = this + otherObject
+     * 
+     * @param {thisName} otherObject Object to add to this.
+     */
+    add(otherObject ){
+
+        this.x = this.x + otherObject.x;
+        this.y = this.y + otherObject.y;
+    }
+
+    /**
+     * Subtracts the inputted object from this:
+     * this = this - otherObject
+     * 
+     * @param {thisName} otherObject Object to sub from this.
+     */
+    sub(otherObject ){
+
+        this.x = this.x - otherObject.x;
+        this.y = this.y - otherObject.y;
+    }
+
+    
+    /**
+     * Does a matrix multiplication on this vector and the other matrix; and 
+     * sets it to this vector:
+     * 
+     * * Vector = A
+     * * otherMatrix = B
+     * * This = Matrix multiplication of A x B
+     *  
+     * 
+     * Vector dimension must equal B columns,
+     * 
+     * Multiply matrix size is: Vector dimension x 1 column. 
      * 
      * @param {Matrix} otherMatrix 
      */
     matrixMultiply( otherMatrix ){
 
-        pointMatrix = new Matrix([ [this.x], [this.y] ]);
-        pointMatrix.multiply(otherMatrix);
+        vectorMatrix = new Matrix([ [this.x], [this.y] ]);
+        vectorMatrix.multiply(otherMatrix);
 
-        this.x = pointMatrix[0][0];
-        this.y = pointMatrix[1][0];
+        this.x = vectorMatrix[0][0];
+        this.y = vectorMatrix[1][0];
     }
 
-    // Return Calculations
+    
+    // Rotation
 
     /**
-     * Returns a copy of this point translated 
-     * @param {Vector2} translationVector Vector to translate the point by
-     * @returns {Point2} Translated point
+     * Rotates this object clock-wise by the inputted rotation.
+     * @param {Number} radianRotation Rotation of the vector in radians.
      */
-    translated(translationVector ){
+    rotate(radianRotation ){
 
-        let newPoint = new Point2(this.x, this.y )
-        newPoint.translate(translationVector )
-
-        return newPoint;
+        this.x = (this.x * Math.cos(radianRotation) ) - ( this.y * Math.sin(radianRotation ));
+        this.y = (this.x * Math.sin(radianRotation )) + ( this.y * Math.cos(radianRotation ));
     }
 
     /**
-     * Does a matrix multiplication on this point and the other matrix; and 
-     * sets returns it:
-     * 
-     * * Point = A
-     * * otherMatrix = B
-     * * This = Matrix multiplication of A x B
-     *  
-     * 
-     * Point dimension must equal B columns,
-     * 
-     * Multiply matrix size is: Point dimension x 1 column. 
-     * 
-     * @param {Matrix} otherMatrix 
-     * @returns {Point2}
+     * Returns a copy of this vector rotated clock-wise by the inputted rotation.
+     * @param {Number} radianRotation Rotation of the vector in radians.
+     * @returns {object} Copy og this vector rotated.
      */
-    matrixMultiplied( otherMatrix ){
+    rotated(radianRotation ){
 
-        pointMatrix = new Matrix([ [this.x], [this.y] ]);
-        pointMatrix.multiply(otherMatrix);
-
-        const x = pointMatrix[0][0];
-        const y = pointMatrix[1][0];
-
-        return new Point2(x, y, z);
+        return new this.constructor(
+            (this.x * Math.cos(radianRotation) ) - ( this.y * Math.sin(radianRotation )),
+            (this.x * Math.sin(radianRotation )) + ( this.y * Math.cos(radianRotation ))
+        );
     }
-
 
 }
 
-export class Point3{
-    // A 3D point class
+/**
+ * @template thisName
+ */
+class Tuple3 extends BaseTuple{
 
-    constructor(x, y, z){
-
+    /**
+     * Creates a 3d object with x, y, z.
+     * 
+     * @param {Number} x X value for the vector.
+     * @param {Number} y Y value for the vector.
+     * @param {Number} z Z value for the vector.
+     */
+    constructor (x, y, z ){
+        super();
         this.x = x;
         this.y = y;
         this.z = z;
     }
 
+
     /**
-     * Logs the Point3 to the console.
+     * Logs the object to the console.
      */
     repr(){
 
-        console.log(`Point3: ${this.x}, ${this.y}, ${this.z} `);
+        console.log(`${this.constructor.name}: ${this.x}, ${this.y}, ${this.z} `);
     }
 
     /**
-     * Returns a copy of this point.
-     * @returns {Point3} Copy of this point
+     * Returns a copy of this Vector.
+     * 
+     * @returns {thisName} Copy of this Vector.
      */
     copy(){
 
-        return new Point3( this.x, this.y, this.z );
+        return new this.constructor( this.x, this.y, this.z );
     }
 
-    // Vector Calculations
-
-    /**
-     * Returns a Vector from this point to otherPoint.
-     * @param {Point} otherPoint The point, to create a vector to.
-     * @returns {Vector3} Vector from this to otherPoint.  
-     */
-    vectorToPoint(otherPoint ){
-
-        let x = otherPoint.x - this.x;
-        let y = otherPoint.y - this.y;
-        let z = otherPoint.z - this.z;
-
-        return new Vector3(x, y, z);
-    }
-
-    /**
-     * Returns a Vector from otherPoint to this point.
-     * @param {Point} otherPoint The point, to create a vector from.
-     * @returns {Vector3} Vector from otherPoint to this.
-     */
-    vectorFromPoint(otherPoint ){
-
-        let x = this.x - otherPoint.x;
-        let y = this.y - otherPoint.y;
-        let z = this.z - otherPoint.z;
-
-        return new Vector3(x, y, z);
-    }
-
-    /**
-     * Moves this point by the inputted vector
-     * @param {Vector3} translationVector Vector to translate this point by
-     */
-    translate(translationVector ){
-
-        this.x = this.x + translationVector.x;
-        this.y = this.y + translationVector.y;
-        this.z = this.z + translationVector.z;
-
-    }
 
     // Calculations
+        
+    /**
+     * Adds the inputted object to this:
+     * this = this + otherObject
+     * 
+     * @param {thisName} otherObject Object to add to this.
+     */
+    add(otherObject ){
+
+        this.x = this.x + otherObject.x;
+        this.y = this.y + otherObject.y;
+        this.z = this.z + otherObject.z;
+    }
 
     /**
-     * Does a matrix multiplication on this point and the other matrix; and 
-     * sets it to this point:
+     * Subtracts the inputted object from this:
+     * this = this - otherObject
      * 
-     * * Point = A
+     * @param {thisName} otherObject Object to sub from this.
+     */
+    sub(otherObject ){
+
+        this.x = this.x - otherObject.x;
+        this.y = this.y - otherObject.y;
+        this.z = this.z - otherObject.z;
+    }
+
+    
+    /**
+     * Does a matrix multiplication on this vector and the other matrix; and 
+     * sets it to this vector:
+     * 
+     * * Vector = A
      * * otherMatrix = B
      * * This = Matrix multiplication of A x B
      *  
      * 
-     * Point dimension must equal B columns,
+     * Vector dimension must equal B columns,
      * 
-     * Multiply matrix size is: Point dimension x 1 column. 
+     * Multiply matrix size is: Vector dimension x 1 column. 
      * 
      * @param {Matrix} otherMatrix 
      */
     matrixMultiply( otherMatrix ){
 
-        pointMatrix = new Matrix([ [this.x], [this.y], [this.z] ]);
-        pointMatrix.multiply(otherMatrix);
+        vectorMatrix = new Matrix([ [this.x], [this.y], [this.z] ]);
+        vectorMatrix.multiply(otherMatrix);
 
-        this.x = pointMatrix[0][0];
-        this.y = pointMatrix[1][0];
-        this.z = pointMatrix[2][0];
-    }
-
-    // Return Calculations
-
-    /**
-     * Returns a copy of this point translated 
-     * @param {Vector3} translationVector Vector to translate the point by
-     * @returns {Point3} Translated point
-     */
-    translated(translationVector ){
-
-        let newPoint = new Point3(this.x, this.y, this.z );
-        newPoint.translate(translationVector );
-
-        return newPoint;
-    }
-
-    /**
-     * Does a matrix multiplication on this point and the other matrix; and 
-     * sets returns it:
-     * 
-     * * Point = A
-     * * otherMatrix = B
-     * * This = Matrix multiplication of A x B
-     *  
-     * 
-     * Point dimension must equal B columns,
-     * 
-     * Multiply matrix size is: Point dimension x 1 column. 
-     * 
-     * @param {Matrix} otherMatrix 
-     * @returns {Point3}
-     */
-    matrixMultiplied( otherMatrix ){
-
-        pointMatrix = new Matrix([ [this.x], [this.y], [this.z] ]);
-        pointMatrix.multiply(otherMatrix);
-
-        const x = pointMatrix[0][0];
-        const y = pointMatrix[1][0];
-        const z = pointMatrix[2][0];
-
-        return new Point3(x, y, z);
+        this.x = vectorMatrix[0][0];
+        this.y = vectorMatrix[1][0];
+        this.z = vectorMatrix[2][0];
     }
 
 }
 
-// Vector
+/**
+ * @template thisName
+ */
+class Tuple4 extends BaseTuple{
 
-export class Vector2{
+    /**
+     * Creates a 4d object with x, y, z, w.
+     * 
+     * @param {Number} x X value for the vector.
+     * @param {Number} y Y value for the vector.
+     * @param {Number} z Z value for the vector.
+     * @param {Number} w W value for the vector.
+     */
+    constructor (x, y, z, w ){
+        
+        super();
+        this.x = x;
+        this.y = y;
+        this.z = z;
+        this.w = w;
+    }
+
+    /**
+     * Logs the object to the console.
+     */
+    repr(){
+
+        console.log(`${this.constructor.name}: ${this.x}, ${this.y}, ${this.z}, ${this.w} `);
+    }
+
+    /**
+     * Returns a copy of this Vector.
+     * 
+     * @returns {thisName} Copy of this Vector.
+     */
+    copy(){
+
+        return new this.constructor( this.x, this.y, this.z, this.w );
+    }
+
+
+    // Calculations
+        
+    /**
+     * Adds the inputted object to this:
+     * this = this + otherObject
+     * 
+     * @param {thisName} otherObject Object to add to this.
+     */
+    add(otherObject ){
+
+        this.x = this.x + otherObject.x;
+        this.y = this.y + otherObject.y;
+        this.z = this.z + otherObject.z;
+        this.w = this.w + otherObject.w;
+    }
+
+    /**
+     * Subtracts the inputted object from this:
+     * this = this - otherObject
+     * 
+     * @param {thisName} otherObject Object to sub from this.
+     */
+    sub(otherObject ){
+
+        this.x = this.x - otherObject.x;
+        this.y = this.y - otherObject.y;
+        this.z = this.z - otherObject.z;
+        this.w = this.w - otherObject.w;
+    }
+
+    
+    /**
+     * Does a matrix multiplication on this vector and the other matrix; and 
+     * sets it to this vector:
+     * 
+     * * Vector = A
+     * * otherMatrix = B
+     * * This = Matrix multiplication of A x B
+     *  
+     * 
+     * Vector dimension must equal B columns,
+     * 
+     * Multiply matrix size is: Vector dimension x 1 column. 
+     * 
+     * @param {Matrix} otherMatrix 
+     */
+    matrixMultiply( otherMatrix ){
+
+        vectorMatrix = new Matrix([ [this.x], [this.y], [this.z], [this.w] ]);
+        vectorMatrix.multiply(otherMatrix);
+
+        this.x = vectorMatrix[0][0];
+        this.y = vectorMatrix[1][0];
+        this.z = vectorMatrix[2][0];
+        this.w = vectorMatrix[3][0];
+    }
+
+
+
+}
+
+// Vectors
+
+/**
+ * @template thisName
+ */
+class BaseVector extends BaseTuple{
+
+    
+    /**
+     * Returns a normalised copy of this vector, with magnitude 1.
+     * @returns {Vector3} Normalised copy of this vector.
+     */
+    normalised(){
+
+        let magnitude = this.getMagnitude();
+
+        return new this.constructor( 
+            this.x / magnitude,
+            this.y / magnitude,
+            this.z / magnitude  );
+    }
+
+    /**
+     * Returns a scaled copy this vector, scaled by the inputted factor.
+     * 
+     * @param {Number} scaleFactor Factor to scale the vector by.
+     * @returns {thisName} Scaled copy of this vector.
+     */
+    scaled(scaleFactor ){
+
+        let copyVector = this.copy();
+        //console.log(`Is Tuple3: ${ copyVector instanceof Tuple3}`)
+        copyVector.scale(scaleFactor);
+
+        return copyVector;
+    }
+
+    /**
+     * Returns a scaled copy this vector, scaled to the inputted factor.
+     * 
+     * @param {Number} scaleFactor Factor to scale the vector to.
+     * @returns {thisName} Scaled copy of this vector.
+     */
+    scaledTo(scaleFactor ){
+
+        let copyVector = this.copy();
+        copyVector.scaleTo(scaleFactor);
+
+        return copyVector;
+    }
+}
+
+/**
+ * @extends {Tuple2<Vector2>}
+ */
+export class Vector2 extends Tuple2{
     // A 2D vector class
 
     /**
-     * Creates a 2d vector with X anf y.
+     * Creates a 2d vector with X and y.
      * @param {Number} x X value for the vector.
      * @param {Number} y Y value for the vector.
      */
     constructor (x, y ){
 
-        this.x = x;
-        this.y = y;
+        super(x, y);
     }
-
-    /**
-     * Logs the Vector2D to the console.
-     */
-    repr(){
-
-        console.log(`Vector2: ${this.x, this.y } `);
-    }
-
-    /**
-     * Returns a copy of this Vector.
-     * @returns {Vector2} Copy of this vector.
-     */
-    copy(){
-
-        return new Vector2( this.x, this.y );
-    }
-
 
     // Variables
 
@@ -748,31 +959,7 @@ export class Vector2{
         return (this.y / this.x)
     }
 
-
     // Calculations
-
-    /**
-     * Adds the inputted vector to this vector:
-     * this = this + otherVector
-     * @param {Vector2} otherVector Vector to add to this vector.
-     */
-    addition(otherVector ){
-
-        this.x = this.x + otherVector.x;
-        this.y = this.y + otherVector.y;
-    }
-
-    /**
-     * Subtracts the inputted vector from this vector:
-     * this = this - otherVector
-     * @param {Vector2} otherVector Vector to subtract to this vector.
-     */
-    subtraction(otherVector ){
-
-        this.x = this.x - otherVector.x;
-        this.y = this.y - otherVector.y;
-    }
-
 
     /**
      * Normalises this vector to a unit vector, with magnitude 1.
@@ -790,104 +977,22 @@ export class Vector2{
      */
     scale(scaleFactor ){
 
-        this.normalise();
         this.x = this.x * scaleFactor;
         this.y = this.y * scaleFactor;
     }
 
     /**
-     * Rotates this vector clock-wise by the inputted rotation.
-     * @param {Number} radianRotation Rotation of the vector in radians.
+     * Scales this vector to the inputted factor.
+     * @param {Number} scaleFactor Factor to scale this vector to.
      */
-    rotate(radianRotation ){
+    scaleTo(scaleFactor ){
 
-        let x = (this.x * Math.cos(radianRotation) ) - ( this.y * Math.sin(radianRotation ));
-        let y = (this.x * Math.sin(radianRotation )) + ( this.y * Math.cos(radianRotation ));
-
-        this.x = x
-        this.y = y
-    }
-
-    /**
-     * Does a matrix multiplication on this vector and the other matrix; and 
-     * sets it to this vector:
-     * 
-     * * Vector = A
-     * * otherMatrix = B
-     * * This = Matrix multiplication of A x B
-     *  
-     * 
-     * Vector dimension must equal B columns,
-     * 
-     * Multiply matrix size is: Vector dimension x 1 column. 
-     * 
-     * @param {Matrix} otherMatrix 
-     */
-    matrixMultiply( otherMatrix ){
-
-        vectorMatrix = new Matrix([ [this.x], [this.y] ]);
-        vectorMatrix.multiply(otherMatrix);
-
-        this.x = vectorMatrix[0][0];
-        this.y = vectorMatrix[1][0];
+        this.normalise();
+        this.x = this.x * scaleFactor;
+        this.y = this.y * scaleFactor;
     }
 
     // Return Calculation
-
-    /**
-     * Adds the inputted vector to this vector and returns it.
-     * 
-     * @param {Vector2} otherVector Vector to add to this vector.
-     * @returns {Vector2} Returns sum of this + inputted.
-     */
-    added(otherVector ){
-
-        const x = this.x + otherVector.x;
-        const y = this.y + otherVector.y;
-
-        return new Vector2(x, y);
-    }
-
-    /**
-     * Subtracts the inputted vector from this vector and returns it.
-     * 
-     * @param {Vector2} otherVector Vector to subtract to this vector.
-     * @returns {Vector2} Returns sum of this - inputted.
-     */
-    subbed(otherVector ){
-
-        const x = this.x - otherVector.x;
-        const y = this.y - otherVector.y;
-
-        return new Vector2(x, y);
-    }
-
-
-    /**
-     * Returns a normalised copy of this vector, with magnitude 1.
-     * @returns {Vector2} Normalised copy of this vector.
-     */
-    normalised(){
-
-        const magnitude = this.getMagnitude();
-        const x = this.x / magnitude;
-        const y = this.y / magnitude;
-
-        return new Vector2(x, y);
-    }
-
-    /**
-     * Returns a scaled copy this vector by the inputted factor.
-     * @param {Number} scaleFactor Factor to scale the vector by.
-     * @returns {Vector2} Scaled copy of this vector.
-     */
-    scaled(scaleFactor ){
-
-        const copyVector = this.normalised();
-        copyVector.scale(scaleFactor);
-
-        return copyVector;
-    }
 
     /**
      * Returns the dot product of this and the inputted vector
@@ -896,55 +1001,19 @@ export class Vector2{
      */
     dot(otherVector ){
 
-        const x = this.x * otherVector.x
-        const y = this.y * otherVector.y
+        return ( 
+            this.x * otherVector.x + 
+            this.y * otherVector.y 
+        );
 
-        return x + y
-    }
-
-
-    /**
-     * Returns a copy of this vector rotated clock-wise by the inputted rotation.
-     * @param {Number} radianRotation Rotation of the vector in radians.
-     * @returns {Vector2} Copy og this vector rotated.
-     */
-    rotated(radianRotation ){
-
-        const x = (this.x * Math.cos(radianRotation) ) - ( this.y * Math.sin(radianRotation ));
-        const y = (this.x * Math.sin(radianRotation )) + ( this.y * Math.cos(radianRotation ));
-
-        return new Vector2(x, y);
-    }
-
-    /**
-     * Does a matrix multiplication on this vector and the other matrix; and 
-     * returns it:
-     * 
-     * * Vector = A
-     * * otherMatrix = B
-     * * This = Matrix multiplication of A x B
-     *  
-     * 
-     * Vector dimension must equal B columns,
-     * 
-     * Multiply matrix size is: Vector dimension x 1 column. 
-     * 
-     * @param {Matrix} otherMatrix 
-     */
-    matrixMultiplied( otherMatrix ){
-
-        vectorMatrix = new Matrix([ [this.x], [this.y] ]);
-        vectorMatrix.multiply(otherMatrix);
-
-        const x = vectorMatrix[0][0];
-        const y = vectorMatrix[1][0];
-
-        return new Vector2(x, y);
     }
 
 }
 
-export class Vector3{
+/**
+ * @extends {Tuple3<Vector3>}
+ */
+export class Vector3 extends Tuple3{
     // A 3D vector class
 
     /**
@@ -955,10 +1024,7 @@ export class Vector3{
      * @param {Number} z Z value for the vector.
      */
     constructor (x, y, z ){
-
-        this.x = x;
-        this.y = y;
-        this.z = z;
+        super(x, y, z);
     }
 
     /**
@@ -966,7 +1032,7 @@ export class Vector3{
      */
     repr(){
 
-        console.log(`Vector3: ${this.x}, ${this.y}, ${this.z} `);
+        super.repr();
     }
 
     /**
@@ -975,7 +1041,7 @@ export class Vector3{
      */
     copy(){
 
-        return new Vector3( this.x, this.y, this.z );
+        return super.copy();
     }
 
     // Variables
@@ -1007,32 +1073,6 @@ export class Vector3{
         return [alpha, beta, gamma ];
     }
 
-    // Vector Calculations
-
-    /**
-     * Adds the inputted vector to this vector:
-     * this = this + otherVector
-     * @param {Vector3} otherVector Vector to add to this vector.
-     */
-    add(otherVector ){
-
-        this.x = this.x + otherVector.x;
-        this.y = this.y + otherVector.y;
-        this.z = this.z + otherVector.z;
-    }
-
-    /**
-     * Subtracts the inputted vector from this vector:
-     * this = this - otherVector
-     * @param {Vector3} otherVector Vector to subtract to this vector.
-     */
-    sub(otherVector ){
-
-        this.x = this.x - otherVector.x;
-        this.y = this.y - otherVector.y;
-        this.z = this.z - otherVector.z;
-    }
-
     // Calculations
 
     /**
@@ -1044,18 +1084,6 @@ export class Vector3{
         this.x = this.x / magnitude;
         this.y = this.y / magnitude;
         this.z = this.z / magnitude;
-    }
-
-    
-    /**
-     * Normalises then scales this vector to the inputted factor.
-     * @param {Number} scaleFactor New scale for this vector.
-     */
-    scaleTo(scaleFactor ){
-        this.normalise();
-        this.x = this.x * scaleFactor;
-        this.y = this.y * scaleFactor;
-        this.z = this.z * scaleFactor;
     }
 
     /**
@@ -1070,28 +1098,41 @@ export class Vector3{
     }
 
     /**
-     * Does a matrix multiplication on this vector and the other matrix; and 
-     * sets it to this vector:
-     * 
-     * * Vector = A
-     * * otherMatrix = B
-     * * This = Matrix multiplication of A x B
-     *  
-     * 
-     * Vector dimension must equal B columns,
-     * 
-     * Multiply matrix size is: Vector dimension x 1 column. 
-     * 
-     * @param {Matrix} otherMatrix 
+     * Scales this vector to the inputted factor.
+     * @param {Number} scaleFactor Factor to scale this vector to.
      */
-    matrixMultiply( otherMatrix ){
+    scaleTo(scaleFactor ){
 
-        vectorMatrix = new Matrix([ [this.x], [this.y], [this.z] ]);
-        vectorMatrix.multiply(otherMatrix);
+        this.normalise();
+        this.x = this.x * scaleFactor;
+        this.y = this.y * scaleFactor;
+        this.z = this.z * scaleFactor;
+    }
 
-        this.x = vectorMatrix[0][0];
-        this.y = vectorMatrix[1][0];
-        this.z = vectorMatrix[2][0];
+    // Return Calculation
+
+    /**
+     * Returns the dot product of this and the inputted vector
+     * @param {Vector3} otherVector Other vector to dot product against.
+     * @returns {Number} The dot product of this and otherVector.
+     */
+    dot(otherVector ){
+
+        return( 
+            this.x * otherVector.x,
+            this.y * otherVector.y,
+            this.z * otherVector.z
+        );
+    }
+
+    cross(otherVector ){
+
+        return new Vector3(
+            ( this.y + otherVector.z ) - ( this.z + otherVector.y ),
+            ( this.z + otherVector.x ) - ( this.x + otherVector.z ),
+            ( this.x + otherVector.y ) - ( this.y + otherVector.x )
+        );
+
     }
 
     // Rotations
@@ -1140,7 +1181,6 @@ export class Vector3{
         this.z = z;
     }
 
-
     /**
      * Rotates this vector about the z-axis by the inputted roation 
      * 
@@ -1164,130 +1204,6 @@ export class Vector3{
     
     }
 
-    // Return Calculation
-
-    /**
-     * Adds the inputted vector to this vector and returns it.
-     * 
-     * @param {Vector3} otherVector Vector to add to this vector.
-     * @returns {Vector3} Returns sum of this + inputted.
-     */
-    added(otherVector ){
-
-        const x = this.x + otherVector.x;
-        const y = this.y + otherVector.y;
-        const z = this.z + otherVector.z;
-
-        return new Vector3(x, y, z);
-    }
-
-    /**
-     * Subtracts the inputted vector from this vector and returns it.
-     * 
-     * @param {Vector3} otherVector Vector to subtract to this vector.
-     * @returns {Vector3} Returns sum of this - inputted.
-     */
-    subbed(otherVector ){
-
-        const x = this.x - otherVector.x;
-        const y = this.y - otherVector.y;
-        const z = this.z - otherVector.z;
-
-        return new Vector3(x, y, z);
-    }
-
-    /**
-     * Returns a normalised copy of this vector, with magnitude 1.
-     * @returns {Vector3} Normalised copy of this vector.
-     */
-    normalised(){
-
-        let magnitude = this.getMagnitude();
-        let x = this.x / magnitude;
-        let y = this.y / magnitude;
-        let z = this.z / magnitude;
-
-        return new Vector3(x, y, z );
-    }
-
-    /**
-     * Returns a copy of this vector scaled to the inputted factor.
-     * @param {Number} scaleFactor New scale for the copy vector.
-     * @returns {Vector3} Scaled copy of this vector.
-     */
-    scaledTo(scaleFactor ){
-
-        let copyVector = this.copy();
-        copyVector.scaleTo(scaleFactor);
-
-        return copyVector;
-    }
-
-    /**
-     * Returns a scaled copy this vector by the inputted factor.
-     * @param {Number} scaleFactor Factor to scale the vector by.
-     * @returns {Vector3} Scaled copy of this vector.
-     */
-    scaled(scaleFactor ){
-
-        let copyVector = this.copy();
-        copyVector.scale(scaleFactor);
-
-        return copyVector;
-    }
-
-    /**
-     * Returns the dot product of this and the inputted vector
-     * @param {Vector3} otherVector Other vector to dot product against.
-     * @returns {Number} The dot product of this and otherVector.
-     */
-    dot(otherVector ){
-
-        let x = this.x * otherVector.x;
-        let y = this.y * otherVector.y;
-        let z = this.z * otherVector.z;
-
-        return x + y + z;
-    }
-
-    cross(otherVector ){
-
-        let x = ( this.y + otherVector.z ) - ( this.z + otherVector.y );
-        let y = ( this.z + otherVector.x ) - ( this.x + otherVector.z );
-        let z = ( this.x + otherVector.y ) - ( this.y + otherVector.x );
-
-        return new Vector3( x, y, z );
-    }
-
-    /**
-     * Does a matrix multiplication on this vector and the other matrix; and 
-     * sets returns it:
-     * 
-     * * Vector = A
-     * * otherMatrix = B
-     * * This = Matrix multiplication of A x B
-     *  
-     * 
-     * Vector dimension must equal B columns,
-     * 
-     * Multiply matrix size is: Vector dimension x 1 column. 
-     * 
-     * @param {Matrix} otherMatrix 
-     * @returns {Vector3}
-     */
-    matrixMultiplied( otherMatrix ){
-
-        vectorMatrix = new Matrix([ [this.x], [this.y], [this.z] ]);
-        vectorMatrix.multiply(otherMatrix);
-
-        const x = vectorMatrix[0][0];
-        const y = vectorMatrix[1][0];
-        const z = vectorMatrix[2][0];
-
-        return new Vector3(x, y, z );
-    }
-
-    // Return Rotation
 
     /**
      * Returns a copy of this vector rotated about the x-axis by the inputted roation. 
@@ -1330,9 +1246,335 @@ export class Vector3{
     }
 }
 
-// Ray
+/**
+ * @extends {Tuple4<Vector4>}
+ */
+export class Vector4 extends Tuple4{
+    // A 4D vector class
+
+    /**
+     * Creates a 4d vector with x, y, z, w.
+     * 
+     * @param {Number} x X value for the vector.
+     * @param {Number} y Y value for the vector.
+     * @param {Number} z Z value for the vector.
+     * @param {Number} w W value for the vector.
+     */
+    
+    constructor(x, y, z, w){
+
+        super(x, y, z, w);
+
+    }
+
+    // Variables
+
+    
+    /**
+     * Return the vector's magnitude.
+     * @returns {Number} Magnitude of vector.
+     */
+    getMagnitude(){
+        
+        return Math.sqrt( ( this.x ** 2) + ( this. y ** 2) + ( this.z ** 2) + ( this.w ** 2) );
+    }
+
+    // Calculations
+
+    /**
+     * Normalises this vector to a unit vector, with magnitude 1.
+     */
+    normalise(){
+
+        let magnitude = this.getMagnitude();
+        this.x = this.x / magnitude;
+        this.y = this.y / magnitude;
+        this.z = this.z / magnitude;
+        this.w = this.w / magnitude;
+    }
+
+    /**
+     * Scales this vector by the inputted factor.
+     * @param {Number} scaleFactor Factor to scale this vector by.
+     */
+    scale(scaleFactor ){
+
+        this.x = this.x * scaleFactor;
+        this.y = this.y * scaleFactor;
+        this.z = this.z * scaleFactor;
+        this.w = this.w * scaleFactor;
+    }
+
+    /**
+     * Scales this vector to the inputted factor.
+     * @param {Number} scaleFactor Factor to scale this vector to.
+     */
+    scaleTo(scaleFactor ){
+
+        this.normalise();
+        this.x = this.x * scaleFactor;
+        this.y = this.y * scaleFactor;
+        this.z = this.z * scaleFactor;
+        this.w = this.w * scaleFactor;
+    }
+
+    // Return Calculations
+
+    /**
+     * Returns the dot product of this and the inputted vector
+     * @param {Vector4} otherVector Other vector to dot product against.
+     * @returns {Number} The dot product of this and otherVector.
+     */
+    dot(otherVector ){
+
+        return( 
+            this.x * otherVector.x,
+            this.y * otherVector.y,
+            this.z * otherVector.z,
+            this.w * otherVector.w
+        );
+    }
+    
+}
+
+// Vector2,3,4 inherting from BaseVector
+ 
+Object.getOwnPropertyNames(BaseVector.prototype)
+  .filter(name => name !== "constructor")
+  .forEach(name => {
+    Vector2.prototype[name] = BaseVector.prototype[name];
+})
+
+Object.getOwnPropertyNames(BaseVector.prototype)
+  .filter(name => name !== "constructor")
+  .forEach(name => {
+    Vector3.prototype[name] = BaseVector.prototype[name];
+})
+
+Object.getOwnPropertyNames(BaseVector.prototype)
+  .filter(name => name !== "constructor")
+  .forEach(name => {
+    Vector4.prototype[name] = BaseVector.prototype[name];
+})
+
+
+
+// Points
+
+/**
+ * @template thisName
+ */
+class BasePoint{
+
+    
+    /**
+     * Returns a copy of this point translated 
+     * @param {BaseVector} translationVector Vector to translate the point by
+     * @returns {thisName} Translated point
+     */
+    translated(translationVector ){
+
+        let newPoint = this.copy();
+        newPoint.translate(translationVector );
+
+        return newPoint;
+    }
+
+}
+
+/**
+ * @extends {Tuple2<Point2>}
+ */
+export class Point2 extends Tuple2{
+    // A 2D point class
+
+     /**
+     * Creates a 2d point with X and y.
+     * @param {Number} x X value for the point.
+     * @param {Number} y Y value for the point.
+     */
+    constructor(x, y){
+
+        super(x, y);
+    }
+
+    // Vector Calculations
+
+    /**
+     * Returns a Vector from this point to otherPoint.
+     * @param {Point} otherPoint The point, to create a vector to.
+     * @returns {Vector2} Vector from this to otherPoint.
+     */
+    vectorToPoint(otherPoint ){
+        
+        let x = otherPoint.x - this.x;
+        let y = otherPoint.y - this.y;
+
+        return new Vector2(x, y);
+    }
+
+    /**
+     * Returns a Vector from otherPoint to this point.
+     * @param {Point} otherPoint The point, to create a vector from.
+     * @returns {Vector2} Vector from otherPoint to this.
+     */
+    vectorFromPoint(otherPoint ){
+
+        let x = this.x - otherPoint.x;
+        let y = this.y - otherPoint.y;
+
+        return new Vector2(x, y);
+    }
+
+    /**
+     * Moves this point by the inputted vector
+     * @param {Vector2} translationVector Vector to translate this point by
+     */
+    translate(translationVector ){
+
+        this.x = this.x + translationVector.x;
+        this.y = this.y + translationVector.y;
+    }
+
+}
+
+/**
+ * @extends {Tuple3<Point3>}
+ */
+export class Point3 extends Tuple3{
+    // A 3D point class
+
+    constructor(x, y, z){
+
+        super(x, y, z);
+    }
+
+    // Vector Calculations
+
+    /**
+     * Returns a Vector from this point to otherPoint.
+     * @param {Point} otherPoint The point, to create a vector to.
+     * @returns {Vector3} Vector from this to otherPoint.  
+     */
+    vectorToPoint(otherPoint ){
+
+        let x = otherPoint.x - this.x;
+        let y = otherPoint.y - this.y;
+        let z = otherPoint.z - this.z;
+
+        return new Vector3(x, y, z);
+    }
+
+    /**
+     * Returns a Vector from otherPoint to this point.
+     * @param {Point} otherPoint The point, to create a vector from.
+     * @returns {Vector3} Vector from otherPoint to this.
+     */
+    vectorFromPoint(otherPoint ){
+
+        let x = this.x - otherPoint.x;
+        let y = this.y - otherPoint.y;
+        let z = this.z - otherPoint.z;
+
+        return new Vector3(x, y, z);
+    }
+
+    /**
+     * Moves this point by the inputted vector
+     * @param {Vector3} translationVector Vector to translate this point by
+     */
+    translate(translationVector ){
+
+        this.x = this.x + translationVector.x;
+        this.y = this.y + translationVector.y;
+        this.z = this.z + translationVector.z;
+
+    }
+
+}
+
+/**
+ * @extends {Tuple4<Point4>}
+ */
+export class Point4 extends Tuple4{
+        // A 4D point class
+
+    constructor(x, y, z, w){
+
+        super(x, y, z, w);
+    }
+
+    // Vector Calculations
+
+    /**
+     * Returns a Vector from this point to otherPoint.
+     * @param {Point} otherPoint The point, to create a vector to.
+     * @returns {Vector4} Vector from this to otherPoint.  
+     */
+    vectorToPoint(otherPoint ){
+
+        const x = otherPoint.x - this.x;
+        const y = otherPoint.y - this.y;
+        const z = otherPoint.z - this.z;
+        const w = otherPoint.w - this.w;
+
+        return new Vector4(x, y, z, w);
+    }
+
+    /**
+     * Returns a Vector from otherPoint to this point.
+     * @param {Point} otherPoint The point, to create a vector from.
+     * @returns {Vector4} Vector from otherPoint to this.
+     */
+    vectorFromPoint(otherPoint ){
+
+        const x = this.x - otherPoint.x;
+        const y = this.y - otherPoint.y;
+        const z = this.z - otherPoint.z;
+        const w = this.w - otherPoint.w;
+
+        return new Vector4(x, y, z, w);
+    }
+
+    /**
+     * Moves this point by the inputted vector
+     * @param {Vector4} translationVector Vector to translate this point by
+     */
+    translate(translationVector ){
+
+        this.x = this.x + translationVector.x;
+        this.y = this.y + translationVector.y;
+        this.z = this.z + translationVector.z;
+        this.w = this.w + translationVector.w;
+
+    }
+
+}
+
+// Point2,3,4 inherting from BasePoint
+
+Object.getOwnPropertyNames(BasePoint.prototype)
+  .filter(name => name !== "constructor")
+  .forEach(name => {
+    Point2.prototype[name] = BasePoint.prototype[name];
+});
+
+Object.getOwnPropertyNames(BasePoint.prototype)
+  .filter(name => name !== "constructor")
+  .forEach(name => {
+    Point3.prototype[name] = BasePoint.prototype[name];
+});
+
+Object.getOwnPropertyNames(BasePoint.prototype)
+  .filter(name => name !== "constructor")
+  .forEach(name => {
+    Point4.prototype[name] = BasePoint.prototype[name];
+});
+
+// Rays
 
 export class Ray3{
+    // A 3D Ray Class
 
     /**
      * Creates 3D ray from a start position and direction.
@@ -1344,6 +1586,17 @@ export class Ray3{
 
         this.start = startPos;
         this.direction = directionVector;
+    }
+
+    /**
+     * Interpolates the start point upto t.
+     * 
+     * @param {Number} t 
+     * @returns {Point3} Ray at point, when t 
+     */
+    at(t){
+
+        return this.start.added( this.direction.scaled(t) );
     }
 
 }
@@ -1370,8 +1623,12 @@ export class RayResult3{
 }
 
 // Shapes
+export class BaseShape{
 
-export class Sphere{
+    
+}
+
+export class Sphere extends BaseShape{
     // A 3d Sphere class
 
     /**
@@ -1380,12 +1637,55 @@ export class Sphere{
      * @param {Point3} centre Centre of the sphere.
      * @param {Number} radius Radius of the sphere.
      * @param {Number} index Index in the list.
+     * @param {*} colour Base colour of the sphere
      */
-    constructor( centre, radius, index ){
+    constructor( centre, radius, index, colour ){
+
+        super();
 
         this.centre = centre;
         this.radius = radius;
         this.index = index;
+        this.colour = colour;
     }
+
+    /**
+     * Tests if the ray passes through the sphere, and returns n RayResult3
+     * object
+     * 
+     * @param {Ray3} ray Ray to test.
+     * @returns {RayResult3} Result of the intersection 
+     */
+    rayIntersect(ray ){
+
+        let oc = this.centre.vectorFromPoint( ray.start );
+
+        let a = ray.direction.dot( ray.direction );
+        let b = -2 * ray.direction.dot( oc );
+        let c = oc.dot( oc ) - (this.radius * this.radius);
+
+        let discriminant = ( b * b ) - ( 4 * a * c );
+
+        if (discriminant < 0 ){
+            return -1
+        }
+
+        let negativeRoot = ( (-b - Math.sqrt( discriminant ) ) / (2 * a) );
+        return negativeRoot;
+        
+        // One or more roots
+
+        // const postiveRoot = ( (-1*b + Math.sqrt( discriminant ) ) / 2 * a);
+        // 
+
+        // 
+
+        // return new RayResult3( 
+        //     ray.at(t), 
+        //     ray.at(t).subbed( this.centre ).scaled( 1 / radius ), // Equivalent to normalised
+        //     negativeRoot,
+        //     this.index 
+        // );
+    }   
 
 }

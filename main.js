@@ -12,8 +12,12 @@ resize();
 let Running = true;
 let loops = 0;
 
-let imageWidth = canvas.width;
-let imageHeight = canvas.height;
+
+let imageWidth = 200;
+let imageHeight = 200;
+
+canvas.height = imageHeight
+canvas.width = imageWidth
 
 console.log(`Width: ${imageWidth}, Height: ${imageHeight}`);
 
@@ -27,16 +31,27 @@ const camPos = new maths.Point3(0, 0, 0);
 const horizontal = new maths.Vector3(veiwportWidth, 0, 0);
 const vertical = new maths.Vector3(0, veiwportHeight, 0);
 
+/**
+ * @type maths.Point3
+ */
 const bottomLeftNear = camPos
     .translated( horizontal.scaled(-0.5) )
     .translated( vertical.scaled(-0.5) )
     .translated( new maths.Vector3(0, 0, -focalLength) );
 
-bottomLeftNear.repr()
+export const spheres = [
+    new maths.Sphere( new maths.Point3(0, 0, -1), 
+                      0.3, 0, new maths.Vector3(1, 0, 0) ),
+
+    new maths.Sphere( new maths.Point3(0, 0.2, -0.8),
+                      0.15, 1, new maths.Vector3(0, 0, 1)),
+    
+    new maths.Sphere( new maths.Point3(0, -100.5, -1),
+                      100, 2, new maths.Vector3(0,1,0) ) 
+];
 
 let colour = new maths.Vector3(0, 0, 0);
 
-console.log(`bln; Is point: ${ bottomLeftNear instanceof maths.Point3 };`)
 // Main loop
 
 // Iterates over each X and Y
@@ -52,29 +67,82 @@ for (let i = 0; i <= imageWidth; i++){
         // behaves the same as a vector as long as both dimensions are the 
         // same.
 
-        let ray = new maths.Ray3( camPos, bottomLeftNear.translated( horizontal.scaled(u) ).translated( vertical.scaled(v) ).translated( camPos ) );
+        let ray = new maths.Ray3( camPos, bottomLeftNear.added( horizontal.scaled(u) ).added( vertical.scaled(v) ).vectorFromPoint( camPos ) );
 
-        colour = renderer.rayColour( ray ).scaled( 255 );
-        renderer.drawPixel( ctx, i, j, colour );
-
-        if (j === 0 && i === 0) {
-            console.log("TOP PIXEL");
-            ray.direction.repr();
-            colour.repr();
-        }
-
-        if (j === imageHeight-1 && i === 0) {
-            console.log("BOTTOM PIXEL");
-            ray.direction.repr();
-            colour.repr();
-        }
-
+        colour = rayColour( ray ).scaled( 255 );
+        drawPixel( ctx, i, j, colour );
 
     }
 
 }
 
 console.log(`Finished Placing Pixels`)
+
+
+// Drawing
+
+/**
+ * Draw a single pixel on the canvas.
+ * 
+ * @param {CanvasRenderingContext2D} canvasCtx Canvas' CTX variable
+ * @param {maths.Point2} x X position, 
+ * @param {maths.Point2} y Y position, 
+ * @param {} pixelColour Pixel's colour to be placed
+ */
+export function drawPixel( canvasCtx, x, y, pixelColour ){
+
+    canvasCtx.fillStyle = `rgb(${pixelColour.x}, ${pixelColour.y}, ${pixelColour.z})`;
+    canvasCtx.fillRect(x, y, 1, 1);
+}
+
+
+// Ray Calls
+
+function traceRay(ray){
+
+
+    const sphere = spheres[0];
+    if ( sphere.rayIntersect(ray) === -1 ){
+        //console.log("false");
+        return rayMiss()
+    }
+
+    //console.log("true");
+    return rayHit(ray); 
+
+}
+
+export function rayColour( ray ){
+
+    let castResult = traceRay(ray);
+
+    if (castResult.t < 0 ){
+        return backgroundColour(ray);
+    }
+    return new maths.Vector3(0,1,0);
+}
+
+export function backgroundColour(ray){
+
+    const white = new maths.Vector3(1, 1, 1);
+    const blue = new maths.Vector3(0.3, 0.5, 0.9);
+    const t = 0.5 *( ray.direction.y + 1.0);
+
+    const interploatedColour = white.scaled( 1 - t ).added( blue.scaled(t) );
+
+    return interploatedColour;
+
+}
+
+function rayMiss(){
+
+    return new maths.RayResult3( new maths.Vector3(0, 0, 0), new maths.Vector3(0, 0, 0), -1, -1)
+}
+
+function rayHit(ray, t, sphereIndex){
+
+    return new maths.RayResult3( new maths.Vector3(0,0,0), new maths.Vector3(0,0,0), t, sphereIndex)
+}
 
 
 
