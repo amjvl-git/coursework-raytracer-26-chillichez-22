@@ -1,4 +1,5 @@
 import * as maths from "./maths.js";
+import * as shapes from "./shapes.js";
 import * as renderer from "./renderer.js";
 
 // Assign canvas and ctx, related variables
@@ -45,24 +46,28 @@ bottomLeftNear.repr()
 
 export const spheres = new Array(
 
-    new maths.Sphere( 
+    new shapes.Sphere( 
         new maths.Point3(0, 0, -1), 
         0.3, 
         0, 
         new maths.Vector3(1, 0, 0) ),
 
-    new maths.Sphere( 
+    new shapes.Sphere( 
         new maths.Point3(0, 0.2, -0.8),
         0.15, 
         1, 
         new maths.Vector3(0, 0, 1) ),
     
-    new maths.Sphere( 
+    new shapes.Sphere( 
         new maths.Point3(0, -100.5, -1),
         100, 
         2, 
         new maths.Vector3(0,1,0) ) 
 );
+
+spheres.forEach(element => {
+    console.log(`Sphere: ${element}`)
+});
 
 let colour = new maths.Vector3(0, 0, 0);
 
@@ -93,10 +98,11 @@ for (let i = 0; i < imageWidth; i++){
             rayDir 
         );
 
+        // Debugging for central point on the screen
         if (i === Math.floor(imageWidth/2) && j === Math.floor(imageHeight/2)){
             console.log("center t:", spheres[0].rayIntersect(ray));
             console.log("ray dir magnitude", rayDir.getMagnitude() );
-            }
+        }
 
         colour = rayColour( ray ).scaled( 255 );
         drawPixel( ctx, i, j, colour );
@@ -132,6 +138,7 @@ function traceRay(ray){
 
     const sphere = spheres[0];
     const t = sphere.rayIntersect(ray);
+
     if ( t < 0 ){
         //console.log("false");
         return rayMiss()
