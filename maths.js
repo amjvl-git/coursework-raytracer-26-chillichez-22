@@ -287,7 +287,7 @@ export class Matrix{
      * Matricies need to be the same size.
      * * This = This - Inputted  
      * 
-     * @param {Matrix} otherMatrix Matrix to add
+     * @param {Matrix} otherMatrix Matrix to sub
      */
     sub( otherMatrix ){
 
@@ -392,7 +392,7 @@ export class Matrix{
      * Matricies need to be the same size.
      * * This = This - Inputted.  
      * 
-     * @param {Matrix} otherMatrix Matrix to add.
+     * @param {Matrix} otherMatrix Matrix to sub.
      * @return {Matrix} Copy of subtracted matrices.
      */
     subbed( otherMatrix ){
@@ -750,7 +750,7 @@ class Tuple3 extends BaseTuple{
      */
     matrixMultiply( otherMatrix ){
 
-        vectorMatrix = new Matrix([ [this.x], [this.y], [this.z] ]);
+        let vectorMatrix = new Matrix([ [this.x], [this.y], [this.z] ]);
         vectorMatrix.multiply(otherMatrix);
 
         this.x = vectorMatrix[0][0];
@@ -1001,10 +1001,9 @@ export class Vector2 extends Tuple2{
      */
     dot(otherVector ){
 
-        return ( 
-            this.x * otherVector.x + 
-            this.y * otherVector.y 
-        );
+        return this.x * otherVector.x + 
+               this.y * otherVector.y 
+        
 
     }
 
@@ -1118,11 +1117,9 @@ export class Vector3 extends Tuple3{
      */
     dot(otherVector ){
 
-        return( 
-            this.x * otherVector.x,
-            this.y * otherVector.y,
-            this.z * otherVector.z
-        );
+        return this.x * otherVector.x +
+               this.y * otherVector.y +
+               this.z * otherVector.z;
     }
 
     cross(otherVector ){
@@ -1327,12 +1324,10 @@ export class Vector4 extends Tuple4{
      */
     dot(otherVector ){
 
-        return( 
-            this.x * otherVector.x,
-            this.y * otherVector.y,
-            this.z * otherVector.z,
-            this.w * otherVector.w
-        );
+        return this.x * otherVector.x +
+               this.y * otherVector.y +
+               this.z * otherVector.z +
+               this.w * otherVector.w;
     }
     
 }
@@ -1654,38 +1649,37 @@ export class Sphere extends BaseShape{
      * object
      * 
      * @param {Ray3} ray Ray to test.
-     * @returns {RayResult3} Result of the intersection 
+     * @returns {Number} Roots of the intersection 
      */
     rayIntersect(ray ){
 
-        let oc = this.centre.vectorFromPoint( ray.start );
+        let oc = ray.start.vectorToPoint( this.centre );
 
         let a = ray.direction.dot( ray.direction );
-        let b = -2 * ray.direction.dot( oc );
+        let b = 2 * ray.direction.dot( oc );
         let c = oc.dot( oc ) - (this.radius * this.radius);
 
-        let discriminant = ( b * b ) - ( 4 * a * c );
+        let discriminant = ( b * b ) - (4 * a * c );
 
-        if (discriminant < 0 ){
+        if (discriminant > 0){
             return -1
         }
 
         let negativeRoot = ( (-b - Math.sqrt( discriminant ) ) / (2 * a) );
-        return negativeRoot;
+        let posotiveRoot = ( (-b + Math.sqrt( discriminant ) ) / (2 * a) );
+
+        // Chooses root to display
         
-        // One or more roots
+        if (negativeRoot > 0 ){
+            return negativeRoot
+        }
 
-        // const postiveRoot = ( (-1*b + Math.sqrt( discriminant ) ) / 2 * a);
-        // 
+        else if (posotiveRoot > 0){
+            return posotiveRoot
+        }
 
-        // 
-
-        // return new RayResult3( 
-        //     ray.at(t), 
-        //     ray.at(t).subbed( this.centre ).scaled( 1 / radius ), // Equivalent to normalised
-        //     negativeRoot,
-        //     this.index 
-        // );
+        return -1;
+        
     }   
 
 }

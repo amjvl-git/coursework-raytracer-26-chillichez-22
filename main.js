@@ -13,8 +13,8 @@ let Running = true;
 let loops = 0;
 
 
-let imageWidth = 200;
-let imageHeight = 200;
+let imageWidth = 400;
+let imageHeight = 400;
 
 canvas.height = imageHeight
 canvas.width = imageWidth
@@ -34,32 +34,47 @@ const vertical = new maths.Vector3(0, veiwportHeight, 0);
 /**
  * @type maths.Point3
  */
-const bottomLeftNear = camPos
-    .translated( horizontal.scaled(-0.5) )
-    .translated( vertical.scaled(-0.5) )
-    .translated( new maths.Vector3(0, 0, -focalLength) );
+const bottomLeftNear = new maths.Point3(
+    camPos.x - veiwportWidth / 2,
+    camPos.y - veiwportHeight / 2,
+    camPos.z - focalLength
+);
 
-export const spheres = [
-    new maths.Sphere( new maths.Point3(0, 0, -1), 
-                      0.3, 0, new maths.Vector3(1, 0, 0) ),
+console.log(`BLN:`)
+bottomLeftNear.repr()
 
-    new maths.Sphere( new maths.Point3(0, 0.2, -0.8),
-                      0.15, 1, new maths.Vector3(0, 0, 1)),
+export const spheres = new Array(
+
+    new maths.Sphere( 
+        new maths.Point3(0, 0, -1), 
+        0.3, 
+        0, 
+        new maths.Vector3(1, 0, 0) ),
+
+    new maths.Sphere( 
+        new maths.Point3(0, 0.2, -0.8),
+        0.15, 
+        1, 
+        new maths.Vector3(0, 0, 1) ),
     
-    new maths.Sphere( new maths.Point3(0, -100.5, -1),
-                      100, 2, new maths.Vector3(0,1,0) ) 
-];
+    new maths.Sphere( 
+        new maths.Point3(0, -100.5, -1),
+        100, 
+        2, 
+        new maths.Vector3(0,1,0) ) 
+);
 
 let colour = new maths.Vector3(0, 0, 0);
 
-// Main loop
+
+// Main Ray Tracer
 
 // Iterates over each X and Y
-for (let i = 0; i <= imageWidth; i++){
-    for ( let j = 0; j <= imageHeight; j++){
+for (let i = 0; i < imageWidth; i++){
+    for ( let j = 0; j < imageHeight; j++){
 
         let u = i / ( imageWidth - 1);
-        let v =  1- j / ( imageHeight - 1);
+        let v =  j / ( imageHeight - 1);
 
         // Creates ray from camera to each screen point
 
@@ -67,7 +82,21 @@ for (let i = 0; i <= imageWidth; i++){
         // behaves the same as a vector as long as both dimensions are the 
         // same.
 
-        let ray = new maths.Ray3( camPos, bottomLeftNear.added( horizontal.scaled(u) ).added( vertical.scaled(v) ).vectorFromPoint( camPos ) );
+        const pixelPoint = bottomLeftNear
+                .added( horizontal.scaled(u) )
+                .added( vertical.scaled(v) );
+        
+        const rayDir = camPos.vectorToPoint(pixelPoint).normalised(); 
+
+        const ray = new maths.Ray3( 
+            pixelPoint,
+            rayDir 
+        );
+
+        if (i === Math.floor(imageWidth/2) && j === Math.floor(imageHeight/2)){
+            console.log("center t:", spheres[0].rayIntersect(ray));
+            console.log("ray dir magnitude", rayDir.getMagnitude() );
+            }
 
         colour = rayColour( ray ).scaled( 255 );
         drawPixel( ctx, i, j, colour );
@@ -102,13 +131,16 @@ function traceRay(ray){
 
 
     const sphere = spheres[0];
-    if ( sphere.rayIntersect(ray) === -1 ){
+    const t = sphere.rayIntersect(ray);
+    if ( t < 0 ){
         //console.log("false");
         return rayMiss()
     }
 
     //console.log("true");
-    return rayHit(ray); 
+    else{
+        return rayHit(ray, t, sphere.index); 
+    }
 
 }
 
@@ -140,13 +172,23 @@ function rayMiss(){
 }
 
 function rayHit(ray, t, sphereIndex){
+    
+    let hitPoint = ray.at(t);
 
-    return new maths.RayResult3( new maths.Vector3(0,0,0), new maths.Vector3(0,0,0), t, sphereIndex)
+    return new maths.RayResult3( 
+        hitPoint, 
+        hitPoint
+            .vectorToPoint( spheres[sphereIndex].centre )
+            .scaled(-1)
+            .normalised(), 
+        t, 
+        sphereIndex)
+
 }
 
 
-
 // Listeners
+
 function resize(){
 
     canvas.width = window.innerWidth;
