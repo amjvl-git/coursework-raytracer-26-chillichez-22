@@ -8,9 +8,9 @@ import { DirectionalLight } from "./lights.js";
  * Draw a single pixel on the canvas.
  * 
  * @param {CanvasRenderingContext2D} canvasCtx Canvas' CTX variable
- * @param {maths.Vector2} x X position, 
- * @param {maths.Vector2} y Y position, 
- * @param {} pixelColour Pixel's colour to be placed
+ * @param {Number} x X position, 
+ * @param {Number} y Y position, 
+ * @param {maths.Vector3} pixelColour Pixel's colour to be placed
  */
 export function drawPixel( canvasCtx, x, y, pixelColour ){
 
@@ -22,16 +22,17 @@ export function drawPixel( canvasCtx, x, y, pixelColour ){
 // Ray Calls
 
 /**
- * Traces the inputted ray, to test for intersection.
+ * Traces the inputted ray, to test for intersections.
  * 
  * @param {maths.Ray3} ray Ray fired from the cam to the screen. 
  * @param {Array<shapes.Sphere>} sphereList List of spheres.
+ * 
  * @returns {maths.RayResult3} Result of the traced ray.
  */
 export function traceRay(ray, sphereList){
 
-    let t = 1000000000000000
-    let closestIndex = -1
+    let t = 1000000000000000;
+    let closestIndex = -1;
 
     // Gets the closest sphere
     for ( let s = 0; s < sphereList.length; s++ ){
@@ -40,18 +41,18 @@ export function traceRay(ray, sphereList){
 
         if ( currentT > 0 && currentT < t ){
 
-            t = currentT
-            closestIndex = s
+            t = currentT;
+            closestIndex = s;
         }
     }
 
     // Missed all the spheres
     if (closestIndex < 0){
 
-        return rayMiss()
+        return rayMiss();
     }
 
-    return rayHit(ray, t, sphereList[closestIndex] )
+    return rayHit(ray, t, sphereList[closestIndex] );
 }
 
 /**
@@ -87,12 +88,19 @@ export function rayColour(ray, camPos, sphereList, globalLight ){
     const viewDirection = camPos.subbed (rayResult.pos );
     const specularContribution = ( Math.max( viewDirection.dot(reflectedLight), 0) ** globalLight.specularIntensity ) * globalLight.specularSize
 
-    // Combines
+    // Combines all effects
     const colour = albedo.scaled(diffuse + specularContribution);
 
     return colour 
 }
 
+/**
+ * Creates the background gradient by interpolating between blue and
+ * white colours.
+ * 
+ * @param {maths.Ray3} ray 
+ * @returns {maths.Vector3}
+ */
 export function backgroundColour(ray){
 
     const white = new maths.Vector3(1, 1, 1);
@@ -105,6 +113,11 @@ export function backgroundColour(ray){
 
 }
 
+/**
+ * Return a missed ray hit, with default miss variables.
+ * 
+ * @returns {maths.RayResult3} Missed ray result.
+ */
 export function rayMiss(){
 
     return new maths.RayResult3(
@@ -120,13 +133,18 @@ export function rayMiss(){
  * 
  * * Hit Point - Vector3
  * * Hit Normal - Vector3
- *   
  * 
- * @param {maths.Ray3} ray 
- * @param {Number} t 
- * @param {shapes.Sphere} sphere 
+ * Using the inputted:
  * 
- * @returns {maths.RayResult3}
+ * * Ray - Ray3
+ * * Scalar value ( T ) - Number
+ * * Intersection Sphere - Shpere
+ * 
+ * @param {maths.Ray3} ray Ray fired.
+ * @param {Number} t Time (or other scalar) value for the ray hit.
+ * @param {shapes.Sphere} sphere Sphere the ray intersected with.
+ * 
+ * @returns {rays.RayResult3} Valid ray hit result.
  */
 export function rayHit(ray, t, sphere){
     

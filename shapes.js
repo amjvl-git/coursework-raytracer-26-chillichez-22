@@ -4,26 +4,10 @@ import * as rays from "./maths_dir/rays.js";
 
 // Projection
 
-
-export class Frustum{
-
-    constructor( near, far, left, right, top, bottom ){
-
-        this.near = near;
-        this.far = far;
-        this.left = left;
-        this.right = right;
-        this.top = top;
-        this.bottom = bottom;
-    }
-}
-
-// Shapes
-export class BaseShape{
-
-}
-
-export class Sphere extends BaseShape{
+/**
+ * A 3d sphere class, with equidistant radius and a centre.
+ */
+export class Sphere{
     // A 3d Sphere class
 
     /**
@@ -32,11 +16,9 @@ export class Sphere extends BaseShape{
      * @param {vectors.Vector3} centre Centre of the sphere.
      * @param {Number} radius Radius of the sphere.
      * @param {Number} index Index in the list.
-     * @param {*} colour Base colour of the sphere
+     * @param {vectors.Vector3} colour Base colour of the sphere
      */
     constructor( centre, radius, index, colour ){
-
-        super();
 
         this.centre = centre;
         this.radius = radius;
@@ -53,6 +35,7 @@ export class Sphere extends BaseShape{
      */
     rayIntersect(ray ){
 
+        // ( o - c ) in the equation, since its used quite alot 
         let oc = ray.start.subbed( this.centre );
 
         let a = ray.direction.dot( ray.direction );
@@ -61,18 +44,18 @@ export class Sphere extends BaseShape{
 
         let discriminant = ( b * b ) - (4 * a * c );
 
+        // Checks if the discriminant, if the ray is inside the circle 
         if (discriminant < 0){
             return -1
         }
 
+        // Gets the closest root for the intersection
         let negativeRoot = ( (-b - Math.sqrt( discriminant ) ) / (2 * a) );
-
-        // Chooses root to display
-        
         if (negativeRoot > 0 ){
             return negativeRoot
         }
 
+        // Error handling, just dont show the pixel
         return -1;
         
     }   
