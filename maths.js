@@ -1,17 +1,16 @@
 /*
 import * as matrixs from "./maths_dir/matrixs.js"
-import * as points from "./maths_dir/points.js"
 import * as rays from "./maths_dir/rays.js";
-// Tuple not needed, is a base class
 import * as vectors from "./maths_dir/vectors.js"
 */
 
+// Exports
 export * from "./maths_dir/matrixs.js"
-export * from "./maths_dir/points.js"
 export * from "./maths_dir/rays.js"
 export * from "./maths_dir/vectors.js"
-// Functions
 
+
+// Functions
 
 
 // Conversions

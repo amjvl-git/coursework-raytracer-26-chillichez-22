@@ -1,5 +1,4 @@
 import * as vectors from "./vectors.js"
-import * as points from "./points.js"
 
 // Rays
 
@@ -21,7 +20,7 @@ export class Ray3{
     /**
      * Interpolates the start point upto t.
      * 
-     * @param {Number} t 
+     * @param {Number} t Scalar t value
      * @returns {points.Point3} Ray at point, when t 
      */
     at(t){
@@ -37,7 +36,7 @@ export class RayResult3{
     /**
      * Creates a hit result for a Ray3.
      * 
-     * @param {points.Point3} position Position of the hit.
+     * @param {vectors.Vector3} position Position of the hit.
      * @param {vectors.Vector3} normalVector Normal vector for the hit.
      * @param {Number} time Scalar value (doesnt have to be time) for the hit.
      * @param {Number} sphereIndex Index of the colliding sphere.

@@ -1,84 +1,45 @@
-import * as tuples from "./tuples.js";
 import * as matrixs from "./matrixs.js";
-
-/*
-    BV <- BT -> BP
-    |     |     |
-    V2 <- T2 -> B2
-    |     |     |
-    V3 <- T3 -> B3
-    |     |     |
-    V4 <- T4 -> B4
-
-    BaseVector & BasePoint Inherit from BaseTuple
-
-    Tuple2,3,4 Inherit BaseTuple
-    Vector2,3,4 Inherit BaseVector
-    Point2,3,4 Inherit BasePoint
-
-    Vector2 & Point2 *also* Inherit from Tuple2
-    Vector3 & Point3 *also* Inherit from Tuple3
-    Vector4 & Point4 *also* Inherit from Tuple4
-
-*/
-
 
 
 // Vectors
 
 /**
- * @template thisName
+ * @template Vector3
  */
-export class BaseVector extends tuples.BaseTuple{
-
+export class BaseVector{
     
-    /**
-     * Returns a normalised copy of this vector, with magnitude 1.
-     * @returns {Vector3} Normalised copy of this vector.
-     */
-    normalised(){
-
-        let magnitude = this.getMagnitude();
-
-        return new this.constructor( 
-            this.x / magnitude,
-            this.y / magnitude,
-            this.z / magnitude  );
-    }
 
     /**
-     * Returns a scaled copy this vector, scaled by the inputted factor.
+     * Does a matrix multiplication on this vector and the other matrix; and 
+     * sets returns it:
      * 
-     * @param {Number} scaleFactor Factor to scale the vector by.
-     * @returns {thisName} Scaled copy of this vector.
+     * * Vector = A
+     * * otherMatrix = B
+     * * This = Matrix multiplication of A x B
+     *  
+     * 
+     * Vector dimension must equal B columns,
+     * 
+     * Multiply matrix size is: Vector dimension x 1 column. 
+     * 
+     * @param {Matrix} otherMatrix 
+     * @returns {Vector3}
      */
-    scaled(scaleFactor ){
+    matrixMultiplied( otherMatrix ){
 
-        let copyVector = this.copy();
-        copyVector.scale(scaleFactor);
+        const copyVector = this.copy()
+        copyVector.matrixMultiply( otherMatrix );
 
         return copyVector;
     }
+    
 
-    /**
-     * Returns a scaled copy this vector, scaled to the inputted factor.
-     * 
-     * @param {Number} scaleFactor Factor to scale the vector to.
-     * @returns {thisName} Scaled copy of this vector.
-     */
-    scaledTo(scaleFactor ){
-
-        let copyVector = this.copy();
-        copyVector.scaleTo(scaleFactor);
-
-        return copyVector;
-    }
 }
 
 /**
- * @extends {tuples.Tuple2<Vector2>}
+ * @extends {BaseVector}
  */
-export class Vector2 extends tuples.Tuple2{
+export class Vector2 extends BaseVector{
     // A 2D vector class
 
     /**
@@ -89,6 +50,24 @@ export class Vector2 extends tuples.Tuple2{
     constructor (x, y ){
 
         super(x, y);
+    }
+    
+    /**
+     * Logs the vector to the console.
+     */
+    repr(){
+
+        console.log(`${this.constructor.name}: ${this.x}, ${this.y} `);
+    }
+
+    /**
+     * Returns a copy of this Vector.
+     * 
+     * @returns {Vector3} Copy of this Vector.
+     */
+    copy(){
+
+        return new this.constructor( this.x, this.y );
     }
 
     // Variables
@@ -120,8 +99,57 @@ export class Vector2 extends tuples.Tuple2{
         return this.y / this.x;
     }
 
+    
     // Calculations
+        
+    /**
+     * Adds the inputted vector to this:
+     * this = this + otherVector
+     * 
+     * @param {Vector3} otherVector Vector to add to this.
+     */
+    add(otherVector ){
 
+        this.x = this.x + otherVector.x;
+        this.y = this.y + otherVector.y;
+    }
+
+    /**
+     * Subtracts the inputted vector from this:
+     * this = this - otherVector
+     * 
+     * @param {Vector3} otherVector Vector to sub from this.
+     */
+    sub(otherVector ){
+
+        this.x = this.x - otherVector.x;
+        this.y = this.y - otherVector.y;
+    }
+ 
+    /**
+     * Does a matrix multiplication on this vector and the other matrix; and 
+     * sets it to this vector:
+     * 
+     * * Vector = A
+     * * otherMatrix = B
+     * * This = Matrix multiplication of A x B
+     *  
+     * 
+     * Vector dimension must equal B columns,
+     * 
+     * Multiply matrix size is: Vector dimension x 1 column. 
+     * 
+     * @param {matrixs.Matrix} otherMatrix 
+     */
+    matrixMultiply( otherMatrix ){
+
+        vectorMatrix = new matrixs.Matrix([ [this.x], [this.y] ]);
+        vectorMatrix.multiply(otherMatrix);
+
+        this.x = vectorMatrix[0][0];
+        this.y = vectorMatrix[1][0];
+    }
+    
     /**
      * Normalises this vector to a unit vector, with magnitude 1.
      */
@@ -155,6 +183,79 @@ export class Vector2 extends tuples.Tuple2{
 
     // Return Calculation
 
+
+    /**
+     * Returns the addition of this and the inputted vector:
+     * return = this + otherVector
+     * 
+     * @param {Vector2} otherVector Vector to add to this.
+     */
+    added(otherVector ){
+
+        return new Vector4( 
+            this.x + otherVector.x,
+            this.y + otherVector.y
+        )
+    }
+
+    /**
+     * Returns the subtraction of this and the inputted vector:
+     * return = this - otherVector
+     * 
+     * @param {Vector2} otherVector Vector to sub from this.
+     */
+    subbed(otherVector ){
+
+        return new Vector4( 
+            this.x - otherVector.x,
+            this.y - otherVector.y
+        )
+    }
+
+    /**
+     * Normalises this vector to a unit vector, with magnitude 1.
+     * 
+     * @returns {Vector2} Copy of this vector normalised.
+     */
+    normalised(){
+
+        let magnitude = this.getMagnitude();
+        return new Vector2( 
+            this.x / magnitude,
+            this.y / magnitude
+        )
+    }
+
+    /**
+     * Scales this vector by the inputted factor.
+     * 
+     * @param {Number} scaleFactor Factor to scale this vector by.
+     * @returns {Vector2} Scaled copy of this vector.
+     */
+    scaled(scaleFactor ){
+
+        return new Vector2(
+            this.x * scaleFactor,
+            this.y * scaleFactor
+        )
+    }
+
+    /**
+     * Scales this vector to the inputted factor.
+     * 
+     * @param {Number} scaleFactor Factor to scale this vector to.
+     * @returns {Vector2} Scaled copy of this vector.
+     */
+    scaledTo(scaleFactor ){
+
+        const magnitude = this.magnitude();
+
+        return new Vector2(
+            this.x / magnitude * scaleFactor,
+            this.y / magnitude * scaleFactor
+        )   
+    }
+
     /**
      * Returns the dot product of this and the inputted vector
      * @param {Vector2} otherVector Other vector to dot product against.
@@ -168,12 +269,41 @@ export class Vector2 extends tuples.Tuple2{
 
     }
 
+    // Rotation
+    
+    /**
+     * Rotates this vector clock-wise by the inputted rotation.
+     * 
+     * @param {Number} radianRotation Rotation of the vector in radians.
+     */
+    rotate(radianRotation ){
+
+        this.x = (this.x * Math.cos(radianRotation) ) - ( this.y * Math.sin(radianRotation ));
+        this.y = (this.x * Math.sin(radianRotation )) + ( this.y * Math.cos(radianRotation ));
+    }
+
+    /**
+     * Returns a copy of this vector rotated clock-wise by the inputted rotation.
+     * 
+     * @param {Number} radianRotation Rotation of the vector in radians.
+     * @returns {Vector2} Copy of this vector rotated.
+     */
+    rotated(radianRotation ){
+
+        return new this.constructor(
+            (this.x * Math.cos(radianRotation) ) - ( this.y * Math.sin(radianRotation )),
+            (this.x * Math.sin(radianRotation )) + ( this.y * Math.cos(radianRotation ))
+        )
+    }
+
 }
 
 /**
- * @extends {tuples.Tuple3<Vector3>}
+ * Creates a Vector 3 vector, with independent X, Y, Z axis
+ * 
+ * @extends {BaseVector}
  */
-export class Vector3 extends tuples.Tuple3{
+export class Vector3 extends BaseVector{
     // A 3D vector class
 
     /**
@@ -184,7 +314,10 @@ export class Vector3 extends tuples.Tuple3{
      * @param {Number} z Z value for the vector.
      */
     constructor (x, y, z ){
-        super(x, y, z);
+        super();
+        this.x = x;
+        this.y = y;
+        this.z = z;
     }
 
     /**
@@ -192,7 +325,7 @@ export class Vector3 extends tuples.Tuple3{
      */
     repr(){
 
-        super.repr();
+        console.log(`${this.constructor.name}: ${this.x}, ${this.y}, ${this.z} `);
     }
 
     /**
@@ -202,7 +335,7 @@ export class Vector3 extends tuples.Tuple3{
      */
     copy(){
 
-        return super.copy();
+        return new Vector3( this.x, this.y, this.z)
     }
 
     // Variables
@@ -236,7 +369,59 @@ export class Vector3 extends tuples.Tuple3{
         return new Array(alpha, beta, gamma );
     }
 
+
     // Calculations
+            
+    /**
+     * Adds the inputted vector to this:
+     * this = this + otherVector
+     * 
+     * @param {Vector3} otherVector Vector to add to this.
+     */
+    add(otherVector ){
+
+        this.x = this.x + otherVector.x;
+        this.y = this.y + otherVector.y;
+        this.z = this.z + otherVector.z;
+    }
+
+    /**
+     * Subtracts the inputted vector from this:
+     * this = this - otherVector
+     * 
+     * @param {Vector3} otherVector Vector to sub from this.
+     */
+    sub(otherVector ){
+
+        this.x = this.x - otherVector.x;
+        this.y = this.y - otherVector.y;
+        this.z = this.z - otherVector.z;
+    }
+
+    /**
+     * Does a matrix multiplication on this vector and the other matrix; and 
+     * sets it to this vector:
+     * 
+     * * Vector = A
+     * * otherMatrix = B
+     * * This = Matrix multiplication of A x B
+     *  
+     * 
+     * Vector dimension must equal B columns,
+     * 
+     * Multiply matrix size is: Vector dimension x 1 column. 
+     * 
+     * @param {matrixs.Matrix} otherMatrix 
+     */
+    matrixMultiply( otherMatrix ){
+
+        let vectorMatrix = new matrixs.Matrix([ [this.x], [this.y], [this.z] ]);
+        vectorMatrix.multiply(otherMatrix);
+
+        this.x = vectorMatrix[0][0];
+        this.y = vectorMatrix[1][0];
+        this.z = vectorMatrix[2][0];
+    }
 
     /**
      * Normalises this vector to a unit vector, with magnitude 1.
@@ -277,6 +462,87 @@ export class Vector3 extends tuples.Tuple3{
     // Return Calculation
 
     /**
+     * Adds the inputted vector from this:
+     * return = this + otherVector.
+     * 
+     * @param {Vector3} otherVector vector to add from this.
+     * @returns {Vector3} Copy of this + otherVector.
+     */
+    added(otherVector ){
+
+        return new Vector3( 
+            this.x + otherVector.x,
+            this.y + otherVector.y,
+            this.z + otherVector.z
+        )
+
+    }
+
+    /**
+     * Subtracts the inputted vector from this:
+     * return = this - otherVector.
+     * 
+     * @param {Vector3} otherVector Vector to sub from this.
+     * @returns {Vector3} Copy of this - otherVector.
+     */
+    subbed(otherVector ){
+
+        return new Vector3( 
+            this.x - otherVector.x,
+            this.y - otherVector.y,
+            this.z - otherVector.z
+        )
+    }
+
+    
+    /**
+     * Return this vector normalised to a unit vector, with magnitude 1.
+     * 
+     * @returns {Vector3} Normalised copy of this vector.
+     */
+    normalised(){
+
+        let magnitude = this.getMagnitude();
+
+        return new Vector3(
+            this.x / magnitude,
+            this.y / magnitude,
+            this.z / magnitude
+        )
+    }
+
+    /**
+     * Returns a scaled copy this vector, scaled by the inputted factor.
+     * 
+     * @param {Number} scaleFactor Factor to scale the vector by.
+     * @returns {Vector3} Scaled copy of this vector.
+     */
+    scaled(scaleFactor ){
+
+        return new Vector3( 
+            this.x * scaleFactor,
+            this.y * scaleFactor,
+            this.z * scaleFactor
+            )
+    }
+
+    /**
+     * Returns a scaled copy this vector, scaled to the inputted factor.
+     * 
+     * @param {Number} scaleFactor Factor to scale the vector to.
+     * @returns {Vector3} Scaled copy of this vector.
+     */
+    scaledTo(scaleFactor ){
+
+
+        return new Vector3( 
+            this.x / magnitude * scaleFactor,
+            this.y / magnitude * scaleFactor,
+            this.z / magnitude * scaleFactor
+            )
+    }
+
+    /**
      * Returns the dot product of this and the inputted vector.
      * 
      * @param {Vector3} otherVector Other vector to dot product against.
@@ -293,7 +559,7 @@ export class Vector3 extends tuples.Tuple3{
      * Returns the cross product of this andthe inputted vector.
      * 
      * @param {Vector3} otherVector Other vector to dot product against.
-     * @returns {Vector3} The dot product of this and otherVector.
+     * @returns {Vector3} The cross product of this and otherVector.
      */
     cross(otherVector ){
 
@@ -403,7 +669,6 @@ export class Vector3 extends tuples.Tuple3{
         return new Vector3(x, this.y, z);
     }
 
-
     /**
      * Returns a copy of this vector rotated about the z-axis by the inputted roation.
      * 
@@ -419,10 +684,13 @@ export class Vector3 extends tuples.Tuple3{
     }
 }
 
+
 /**
- * @extends {tuples.Tuple4<Vector4>}
+ * Creates a Vector 4, with indpendent X, Y, Z, W axis.
+ * 
+ * @extends {BaseVector}
  */
-export class Vector4 extends tuples.Tuple4{
+export class Vector4 extends BaseVector{
     // A 4D vector class
 
     /**
@@ -439,8 +707,27 @@ export class Vector4 extends tuples.Tuple4{
 
     }
 
-    // Variables
+    
+    /**
+     * Logs the vector to the console.
+     */
+    repr(){
 
+        console.log(`${this.constructor.name}: ${this.x}, ${this.y}, ${this.z}, ${this.w} `);
+    }
+
+    /**
+     * Returns a copy of this Vector.
+     * 
+     * @returns {Vector4} Copy of this Vector.
+     */
+    copy(){
+
+        return new this.constructor( this.x, this.y, this.z, this.w );
+    }
+
+
+    // Variables
     
     /**
      * Return the vector's magnitude.
@@ -449,11 +736,69 @@ export class Vector4 extends tuples.Tuple4{
      */
     getMagnitude(){
         
-        return Math.sqrt( ( this.x ** 2) + ( this. y ** 2) + ( this.z ** 2) + ( this.w ** 2) );
+        return Math.sqrt( 
+            ( this.x ** 2) + 
+            ( this. y ** 2) + 
+            ( this.z ** 2) + 
+            ( this.w ** 2) )
     }
 
     // Calculations
+        
+    /**
+     * Adds the inputted vector to this:
+     * this = this + otherVector
+     * 
+     * @param {Vector4} otherVector Vector to add to this.
+     */
+    add(otherVector ){
 
+        this.x = this.x + otherVector.x;
+        this.y = this.y + otherVector.y;
+        this.z = this.z + otherVector.z;
+        this.w = this.w + otherVector.w;
+    }
+
+    /**
+     * Subtracts the inputted vector from this:
+     * this = this - otherVector
+     * 
+     * @param {Vector4} otherVector Vector to sub from this.
+     */
+    sub(otherVector ){
+
+        this.x = this.x - otherVector.x;
+        this.y = this.y - otherVector.y;
+        this.z = this.z - otherVector.z;
+        this.w = this.w - otherVector.w;
+    }
+
+    /**
+     * Does a matrix multiplication on this vector and the other matrix; and 
+     * sets it to this vector:
+     * 
+     * * Vector = A
+     * * otherMatrix = B
+     * * This = Matrix multiplication of A x B
+     *  
+     * 
+     * Vector dimension must equal B columns,
+     * 
+     * Multiply matrix size is: Vector dimension x 1 column. 
+     * 
+     * @param {matrixs.Matrix} otherMatrix 
+     */
+    matrixMultiply(otherMatrix ){
+
+        vectorMatrix = new matrixs.Matrix([ [this.x], [this.y], [this.z], [this.w] ]);
+        vectorMatrix.multiply(otherMatrix);
+
+        this.x = vectorMatrix[0][0];
+        this.y = vectorMatrix[1][0];
+        this.z = vectorMatrix[2][0];
+        this.w = vectorMatrix[3][0];
+    }
+    
     /**
      * Normalises this vector to a unit vector, with magnitude 1.
      */
@@ -495,6 +840,90 @@ export class Vector4 extends tuples.Tuple4{
 
     // Return Calculations
 
+
+    /**
+     * Returns the addition of this and the inputted vector:
+     * return = this + otherVector
+     * 
+     * @param {Vector4} otherVector Vector to add to this.
+     */
+    added(otherVector ){
+
+        return new Vector4( 
+            this.x + otherVector.x,
+            this.y + otherVector.y,
+            this.z + otherVector.z,
+            this.w + otherVector.w
+        )
+    }
+
+    /**
+     * Returns the subtraction of this and the inputted vector:
+     * return = this - otherVector
+     * 
+     * @param {Vector4} otherVector Vector to sub from this.
+     */
+    subbed(otherVector ){
+
+        return new Vector4( 
+            this.x - otherVector.x,
+            this.y - otherVector.y,
+            this.z - otherVector.z,
+            this.w - otherVector.w
+        )
+    }
+
+        
+    /**
+     * Normalises this vector to a unit vector, with magnitude 1.
+     * 
+     * @returns {Vector4} Copy of this vector normalised.
+     */
+    normalised(){
+
+        let magnitude = this.getMagnitude();
+        return new Vector4( 
+            this.x / magnitude,
+            this.y / magnitude,
+            this.z / magnitude,
+            this.w / magnitude
+        )
+    }
+
+    /**
+     * Scales this vector by the inputted factor.
+     * 
+     * @param {Number} scaleFactor Factor to scale this vector by.
+     * @returns {Vector4} Scaled copy of this vector.
+     */
+    scaled(scaleFactor ){
+
+        return new Vector4(
+            this.x * scaleFactor,
+            this.y * scaleFactor,
+            this.z * scaleFactor,
+            this.w * scaleFactor
+        )
+    }
+
+    /**
+     * Scales this vector to the inputted factor.
+     * 
+     * @param {Number} scaleFactor Factor to scale this vector to.
+     * @returns {Vector4} Scaled copy of this vector.
+     */
+    scaledTo(scaleFactor ){
+
+        const magnitude = this.magnitude();
+
+        return new Vector4(
+            this.x / magnitude * scaleFactor,
+            this.y / magnitude * scaleFactor,
+            this.z / magnitude * scaleFactor,
+            this.w / magnitude * scaleFactor
+        )   
+    }
+
     /**
      * Returns the dot product of this and the inputted vector
      * 
@@ -510,25 +939,5 @@ export class Vector4 extends tuples.Tuple4{
     }
     
 }
-
-// Vector2,3,4 inherting from BaseVector
- 
-Object.getOwnPropertyNames(BaseVector.prototype)
-  .filter(name => name !== "constructor")
-  .forEach(name => {
-    Vector2.prototype[name] = BaseVector.prototype[name];
-})
-
-Object.getOwnPropertyNames(BaseVector.prototype)
-  .filter(name => name !== "constructor")
-  .forEach(name => {
-    Vector3.prototype[name] = BaseVector.prototype[name];
-})
-
-Object.getOwnPropertyNames(BaseVector.prototype)
-  .filter(name => name !== "constructor")
-  .forEach(name => {
-    Vector4.prototype[name] = BaseVector.prototype[name];
-})
 
 

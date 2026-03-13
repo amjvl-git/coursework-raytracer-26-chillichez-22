@@ -1,5 +1,4 @@
 import * as vectors from "./maths_dir/vectors.js";
-import * as points from "./maths_dir/points.js";
 import * as rays from "./maths_dir/rays.js";
 
 
@@ -30,7 +29,7 @@ export class Sphere extends BaseShape{
     /**
      * Creates a sphere using centre-point and a radius.
      * 
-     * @param {points.Point3} centre Centre of the sphere.
+     * @param {vectors.Vector3} centre Centre of the sphere.
      * @param {Number} radius Radius of the sphere.
      * @param {Number} index Index in the list.
      * @param {*} colour Base colour of the sphere
@@ -54,7 +53,7 @@ export class Sphere extends BaseShape{
      */
     rayIntersect(ray ){
 
-        let oc = ray.start.vectorToPoint( this.centre );
+        let oc = ray.start.subbed( this.centre );
 
         let a = ray.direction.dot( ray.direction );
         let b = 2 * ray.direction.dot( oc );
@@ -67,16 +66,11 @@ export class Sphere extends BaseShape{
         }
 
         let negativeRoot = ( (-b - Math.sqrt( discriminant ) ) / (2 * a) );
-        let posotiveRoot = ( (-b + Math.sqrt( discriminant ) ) / (2 * a) );
 
         // Chooses root to display
         
         if (negativeRoot > 0 ){
             return negativeRoot
-        }
-
-        else if (posotiveRoot > 0){
-            return posotiveRoot
         }
 
         return -1;
