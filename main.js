@@ -41,25 +41,64 @@ const bottomLeftNear = camPos
 
 const spheres = new Array(
 
-    new shapes.Sphere( 
-        new maths.Vector3( 0, 0, -1 ), 
-        0.3, 
-        0, 
-        new maths.Vector3( 1, 0, 0 ) 
+    new shapes.Sphere(  // Red
+
+        new maths.Vector3(  // Centre
+            0, 
+            0, 
+            -1 
+        ), 
+
+        0.3,  // Radius
+        0,    // Index
+
+        new maths.Vector3( // Colour
+            1,
+            0, 
+            0 
+        ),
+
+        1  // Reflectivity
     ),
 
-    new shapes.Sphere( 
-        new maths.Vector3( 0, 0.2, -0.8 ),
-        0.15, 
-        1, 
-        new maths.Vector3( 0, 0, 1 ) 
+    new shapes.Sphere( // Blue
+
+        new maths.Vector3( // Centre
+            0, 
+            0.2, 
+            0 
+        ),
+
+        0.15,  // Radius
+        1,     // Index
+
+        new maths.Vector3( // Colour
+            0, 
+            0, 
+            1 
+        ), 
+ 
+        1     // Reflectivity
     ),
     
-    new shapes.Sphere( 
-        new maths.Vector3( 0, -100.5, -1 ),
-        100, 
-        2, 
-        new maths.Vector3( 0, 1, 0 ) 
+    new shapes.Sphere( // Green
+
+        new maths.Vector3( // Centre
+            0, 
+            -100.5, 
+            -1 
+        ),
+
+        100,  // Radius
+        2,    // Index
+
+        new maths.Vector3( // Colour
+            0, 
+            1, 
+            0 
+        ),
+        
+        1    // Reflectivity
     ) 
 
 );
@@ -67,16 +106,53 @@ const spheres = new Array(
 // Global illumination & Settings
 
 const sun = new DirectionalLight( 
-    new maths.Vector3( -1.1, -1.3, -1.5 ).normalised(),
-    2,      // Specular Intensity
-    0.8,    // Specular Size
+
+    new maths.Vector3( // Direction
+        1.1, 
+        -1.3,
+        -1.5 
+    ).normalised(),
+    
+    new maths.Vector3( // Colour
+        1,
+        1,
+        1
+    ).normalised(),
+
+    1.3,      // Specular Intensity
+    1,    // Specular Size
     60      // Shadow Intensity
 );
 
 const sceneAdditions = new renderer.SceneAdditions( 
     true,    // Gamma Correction
-    100      // MultiSample AntiAliasing (MSAA) Samples
+    1,       // MultiSample AntiAliasing (MSAA) Samples
+    10        // Max Number of Reflection Bounces
 )
+
+console.log(
+
+`Above MSSA 100, load times are 15s<, with little difference
+
+---------------
+MSSA: 1
+Bounces: 10
+Load Time: ~0.9s
+
+---------------
+MSSA: 50
+Bounces: 10
+Load Time: ~8.2s
+
+---------------
+MSAA: 75
+Bounces: 10
+Load Time: ~11.5s
+
+---------------
+MSAA: 100
+Bounces: 10
+Load Time: ~ 15.7s `)
 
 
 // Main Ray Tracer
@@ -174,12 +250,12 @@ Phong Diffuse
 Phong Specular
     Strength: ${sun.specularIntensity}
     Size: ${sun.specularSize}
+Recursive Reflection
+    Max Bounces: ${sceneAdditions.maxReflectionBounces}
 Shadow Cast
     Strength: ${sun.shadowIntensity}
 Gamma Correction: ${sceneAdditions.doGammaCorrection}
-MSAA: ${sceneAdditions.msaaSampleCount} Samples
-
-`)
+MSAA: ${sceneAdditions.msaaSampleCount} Samples `)
 
 
 

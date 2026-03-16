@@ -12,16 +12,20 @@ export class SceneAdditions{
 
     /**
      * 
-     * @param {*} doGammaCorrection Should gamma correction be apllied.
-     * @param {*} msaaSampleCount Number of samples in a grid the render uses to check for  
+     * @param {boolean} doGammaCorrection Should gamma correction be apllied.
+     * @param {Number} msaaSampleCount Number of samples in a grid the 
+     * render uses to check for  
+     * @param {Number} maxReflectionBounces Max number of bounces the
+     * recursive reflection can use, for a continous sphere
      */
     constructor(
         doGammaCorrection, 
-        msaaSampleCount ){
+        msaaSampleCount,
+    maxReflectionBounces ){
 
         this.doGammaCorrection = doGammaCorrection;
-
         this.msaaSampleCount = msaaSampleCount;
+        this.maxReflectionBounces = maxReflectionBounces;
     }
 
 }
@@ -38,7 +42,9 @@ export class SceneAdditions{
  */
 export function drawPixel( canvasCtx, x, y, pixelColour ){
 
-    canvasCtx.fillStyle = `rgb(${pixelColour.x}, ${pixelColour.y}, ${pixelColour.z})`;
+    canvasCtx.fillStyle = 
+        `rgb(${pixelColour.x}, ${pixelColour.y}, ${pixelColour.z})`;
+
     canvasCtx.fillRect(x, y, 1, 1);
 }
 
@@ -91,7 +97,7 @@ export function traceRay(ray, sphereList){
  * @param {maths.Vector3} camPos Position of the main camera in the scene.
  * @param {Array<shapes.Sphere>} sphereList List of spheres.
  * @param {DirectionalLight} globalLight The global directional light.
- * @param {} sceneAdditions Additional settings for the scene.
+ * @param {SceneAdditions} sceneAdditions Additional settings for the scene.
  * 
  * @returns {maths.Vector3} Pixel Colour, clamped from [0 min -> 1 max].
  */
@@ -105,18 +111,22 @@ export function rayColour(
     
     let rayResult = traceRay(ray, sphereList);
 
-    // Light misses object
+    // Ray misses object
     if  (rayResult.t < 0 ){
         return backgroundColour(ray);
     }
 
-    // Phong Albedo (Base Colour) & Diffuse
-    const albedo = sphereList[ rayResult.sphereIndex ].colour;
+    const sphere = sphereList[ rayResult.sphereIndex ];
 
-    const diffuse = Math.max( 
+    // Phong Albedo (Base Colour)
+    const albedo = sphere.colour;
+
+    // Phong Diffuse
+    const diffuseStrength = Math.max( 
         rayResult.normal
             .dot( globalLight.antiLightDirection ),
         0 );
+    const diffuse = globalLight.lightColour.scaled( diffuseStrength )
 
     // Phong Specular
     const reflectedLight = globalLight.lightDirection
@@ -127,15 +137,36 @@ export function rayColour(
         );
     
     const viewDirection = camPos.subbed(rayResult.pos );
-    const specularContribution = ( 
-            Math.max( 
-                viewDirection.dot(reflectedLight), 
-                0 
-            ) ** globalLight.specularIntensity
-        ) * globalLight.specularSize
+    const specularStrength = 
+        Math.max( 
+            viewDirection.dot(reflectedLight), 
+            0 
+        ) ** globalLight.specularIntensity
 
-    // Combines diffuse & specular effects
-    let colour = albedo.scaled(diffuse + specularContribution);
+    const specular = globalLight.lightColour.scaled( specularStrength );
+
+    // Reflectivity
+
+    // Starts a recursive tracer that
+    const reflective = reflectiveColour( 
+            ray, 
+            rayResult, 
+            camPos,
+            sphereList, 
+            sceneAdditions,
+            1
+    );
+    
+    // Combines effects
+    let lighting = diffuse.added( specular );
+
+    let colour = 
+        albedo.scaled(  1 - sphere.reflectivity)
+        
+        .added( reflective.scaled( sphere.reflectivity ) )
+
+        
+    
 
     // Shadow Casting
 
@@ -157,8 +188,105 @@ export function rayColour(
         colour.pow( (1/2.2) );
     }
 
-
     return colour 
+}
+
+/**
+ *  Returns the colour of a traced ray that has been reflected by a mirror.
+ * 
+ *  * Colour = Mirror * ( reflectivity ) + albedo * ( 1 - reflectivity ).
+ * 
+ *  Is recursively called. 
+ * 
+ * @param {maths.Ray3} ray Ray fires from the camera to the screen.
+ * @param {maths.RayResult3} rayResult Result of the previous ray intersect
+ * 
+ * @param {maths.RayResult3} camPos Position of the main camera in the scene.
+ * @param {Array<shapes.Sphere>} sphereList List of spheres.
+ * @param {DirectionalLight} globalLight The global directional light.
+ * 
+ * @param {SceneAdditions} sceneAdditions Additional settings for the scene.
+ * @param {Number} bounces Number of bounces the ray has taken.
+ * 
+ * @returns {maths.Vector3} Pixel Colour, clamped from [0 min -> 1 max].
+ */
+
+export function reflectiveColour(
+    ray, 
+    rayResult,
+    camPos,
+    sphereList,
+    globalLight,
+    sceneAdditions,
+    bounces
+    ){
+    
+    // Failsafe, incase the rucursive goes on too long
+    if (sceneAdditions.maxReflectionBounces <= bounces){
+        console.log(`Too many bounces aborting with BG colour`)
+        return backgroundColour(ray)
+    }
+
+    // Calculates 
+    const reflectedRay = new maths.Ray3(
+        rayResult.pos,
+        ray.direction
+            .subbed( rayResult.normal
+                .scaled( 2 * rayResult.normal
+                    .dot( ray.direction )
+                )
+            )
+    )
+    //reflectedRay.repr();
+    const reflectedRayResult = traceRay( reflectedRay, sphereList );
+    
+    // Ray misses object 
+    // First recursion break
+    if  ( reflectedRayResult.t < 0 ){
+
+        //console.log(`Missed`)
+        return backgroundColour( reflectedRay );
+    }
+
+    const sphere = sphereList[ reflectedRayResult.sphereIndex ];
+
+    // Recursively calls function, as material is reflective
+    if (sphere.reflectivity > 0){
+
+        //console.log(`Bouncing`)
+        bounces += 1;   
+        const reflectedColour = reflectiveColour( 
+            reflectedRay, 
+            reflectedRayResult, 
+            camPos,
+            sphereList, 
+            sceneAdditions,
+            bounces
+        ); 
+        
+        return reflectedColour
+            .scaled( sphere.reflectivity )
+                    .added( sphere.colour
+                        .scaled( 1 - sphere.reflectivity)
+            )
+
+    }
+    
+    // Sphere not reflective
+
+    // Second recursive break
+
+    // This ***should not*** start another reflective recursion,
+    // as this material isnt reflective 
+    //console.log(`Unreflective`)
+    return rayColour( 
+        reflectedRay, 
+        camPos, 
+        sphereList, 
+        globalLight, 
+        sceneAdditions 
+    );
+
 }
 
 /**

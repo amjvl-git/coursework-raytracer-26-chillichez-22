@@ -17,13 +17,15 @@ export class Sphere{
      * @param {Number} radius Radius of the sphere.
      * @param {Number} index Index in the list.
      * @param {vectors.Vector3} colour Base colour of the sphere
+     * @param {Number} reflectivity How reflective the surface is.
      */
-    constructor( centre, radius, index, colour ){
+    constructor( centre, radius, index, colour, reflectivity ){
 
         this.centre = centre;
         this.radius = radius;
         this.index = index;
         this.colour = colour;
+        this.reflectivity = reflectivity;
     }
 
     /**

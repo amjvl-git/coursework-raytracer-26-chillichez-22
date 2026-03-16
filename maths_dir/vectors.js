@@ -399,6 +399,19 @@ export class Vector3 extends BaseVector{
     }
 
     /**
+     * Multiplies the inputted vector to this:
+     * this = this * otherVector
+     * 
+     * @param {Vector3} otherVector Vector to multiply to this.
+     */
+    multiply(otherVector ){
+
+        this.x = this.x * otherVector.x;
+        this.y = this.y * otherVector.y;
+        this.z = this.z * otherVector.z;
+    }
+
+    /**
      * Does a matrix multiplication on this vector and the other matrix; and 
      * sets it to this vector:
      * 
@@ -505,6 +518,23 @@ export class Vector3 extends BaseVector{
             this.z - otherVector.z
         )
     }
+
+    /**
+     * Multiplies the inputted vector to this:
+     * return = this * otherVector.
+     * 
+     * @param {Vector3} otherVector Vector to multiply to this.
+     * @returns {Vector3} Copy of this * otherVector.
+     */
+    multiplied(otherVector ){
+
+        return new Vector3( 
+            this.x * otherVector.x,
+            this.y * otherVector.y,
+            this.z * otherVector.z
+        )
+    }
+
 
     
     /**

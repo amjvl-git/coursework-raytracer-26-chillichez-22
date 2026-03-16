@@ -16,6 +16,8 @@ export class DirectionalLight{
      * @param {maths.Vector3} directionVector Normalised direction for the
      * light to travel.
      * 
+     * @param {maths.Vector3} lightColour Colour of the emmited light. 
+     * 
      * @param {Number} specularIntensity Intensity of the specular. 
      * (Lower = More Specular).
      * @param {Number} specularSize Size of the specular. 
@@ -28,14 +30,16 @@ export class DirectionalLight{
      */
     constructor(
         directionVector, 
+        lightColour,
         specularIntensity, 
         specularSize, 
         shadowIntensity,
-        shouldGammaCorrection
-         ){
+        ){
 
         this.lightDirection = directionVector;
         this.antiLightDirection = directionVector.scaled(-1);
+        
+        this.lightColour = lightColour;
 
         this.specularIntensity = specularIntensity;
         this.specularSize = specularSize;
