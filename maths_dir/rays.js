@@ -17,6 +17,11 @@ export class Ray3{
         this.direction = directionVector;
     }
 
+    repr(){
+
+        console.log("Ray3: ", this.start, this.direction)
+    }
+
     /**
      * Interpolates the start point upto t.
      * 

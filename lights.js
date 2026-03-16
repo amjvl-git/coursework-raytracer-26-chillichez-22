@@ -23,8 +23,16 @@ export class DirectionalLight{
      * 
      * @param {Number} shadowIntensity Intensity of apllied shadows. 
      * (Higher = Deeper Shadows).
+     * 
+     * 
      */
-    constructor(directionVector, specularIntensity, specularSize, shadowIntensity ){
+    constructor(
+        directionVector, 
+        specularIntensity, 
+        specularSize, 
+        shadowIntensity,
+        shouldGammaCorrection
+         ){
 
         this.lightDirection = directionVector;
         this.antiLightDirection = directionVector.scaled(-1);

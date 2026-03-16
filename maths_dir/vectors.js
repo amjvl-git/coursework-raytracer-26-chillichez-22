@@ -459,6 +459,18 @@ export class Vector3 extends BaseVector{
         this.z = this.z * scaleFactor;
     }
 
+    /**
+     * Raises this vector by the power.
+     * 
+     * @param {Number} power 
+     */
+    pow( power ){
+
+        this.x = this.x ** power;
+        this.y = this.y ** power;
+        this.z = this.z ** power;
+    }
+
     // Return Calculation
 
     /**
@@ -539,7 +551,21 @@ export class Vector3 extends BaseVector{
             this.x / magnitude * scaleFactor,
             this.y / magnitude * scaleFactor,
             this.z / magnitude * scaleFactor
-            )
+        )
+    }
+
+    /**
+     * Returns a copy of this vector raised to the inputted power.
+     * 
+     * @param {Number} power 
+     */
+    powed( power ){
+
+        return new Vector3( 
+            this.x ** power,
+            this.y ** power,
+            this.z ** power
+        )
     }
 
     /**

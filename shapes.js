@@ -27,7 +27,7 @@ export class Sphere{
     }
 
     /**
-     * Tests if the ray passes through the sphere, and returns n RayResult3
+     * Tests if the ray passes through the sphere, and returns a RayResult3
      * object
      * 
      * @param {rays.Ray3} ray Ray to test.

@@ -2,6 +2,30 @@ import * as maths from "./maths.js";
 import * as shapes from "./shapes.js";
 import { DirectionalLight } from "./lights.js";
 
+// Classes
+
+/**
+ * Class that holds additional settings for the render
+ * and ray color functions
+ */
+export class SceneAdditions{
+
+    /**
+     * 
+     * @param {*} doGammaCorrection Should gamma correction be apllied.
+     * @param {*} msaaSampleCount Number of samples in a grid the render uses to check for  
+     */
+    constructor(
+        doGammaCorrection, 
+        msaaSampleCount ){
+
+        this.doGammaCorrection = doGammaCorrection;
+
+        this.msaaSampleCount = msaaSampleCount;
+    }
+
+}
+
 // Drawing
 
 /**
@@ -67,10 +91,17 @@ export function traceRay(ray, sphereList){
  * @param {maths.Vector3} camPos Position of the main camera in the scene.
  * @param {Array<shapes.Sphere>} sphereList List of spheres.
  * @param {DirectionalLight} globalLight The global directional light.
+ * @param {} sceneAdditions Additional settings for the scene.
  * 
  * @returns {maths.Vector3} Pixel Colour, clamped from [0 min -> 1 max].
  */
-export function rayColour(ray, camPos, sphereList, globalLight ){
+export function rayColour(
+    ray, 
+    camPos, 
+    sphereList, 
+    globalLight,
+    sceneAdditions 
+    ){
     
     let rayResult = traceRay(ray, sphereList);
 
@@ -81,15 +112,51 @@ export function rayColour(ray, camPos, sphereList, globalLight ){
 
     // Phong Albedo (Base Colour) & Diffuse
     const albedo = sphereList[ rayResult.sphereIndex ].colour;
-    const diffuse = Math.max(rayResult.normal.dot( globalLight.antiLightDirection ), 0 );
+
+    const diffuse = Math.max( 
+        rayResult.normal
+            .dot( globalLight.antiLightDirection ),
+        0 );
 
     // Phong Specular
-    const reflectedLight = globalLight.lightDirection.subbed( rayResult.normal.scaled( 2 * rayResult.normal.dot( globalLight.lightDirection) ));
-    const viewDirection = camPos.subbed (rayResult.pos );
-    const specularContribution = ( Math.max( viewDirection.dot(reflectedLight), 0) ** globalLight.specularIntensity ) * globalLight.specularSize
+    const reflectedLight = globalLight.lightDirection
+        .subbed( rayResult.normal
+            .scaled( 2 * rayResult.normal
+                .dot(globalLight.lightDirection) 
+            )
+        );
+    
+    const viewDirection = camPos.subbed(rayResult.pos );
+    const specularContribution = ( 
+            Math.max( 
+                viewDirection.dot(reflectedLight), 
+                0 
+            ) ** globalLight.specularIntensity
+        ) * globalLight.specularSize
 
-    // Combines all effects
-    const colour = albedo.scaled(diffuse + specularContribution);
+    // Combines diffuse & specular effects
+    let colour = albedo.scaled(diffuse + specularContribution);
+
+    // Shadow Casting
+
+    const shadowRay = new maths.Ray3(
+        rayResult.pos,
+        globalLight.antiLightDirection 
+    );
+    const shadowRayResult = traceRay( shadowRay, sphereList )
+    
+    // Shadow hits object
+    if  (shadowRayResult.t >= 0 ){
+
+        colour.scale( 1/globalLight.shadowIntensity );              
+    }
+
+    // Gamma Correction
+    if (sceneAdditions.doGammaCorrection){
+        
+        colour.pow( (1/2.2) );
+    }
+
 
     return colour 
 }
@@ -110,7 +177,6 @@ export function backgroundColour(ray){
     const interploatedColour = white.scaled( 1 - t ).added( blue.scaled(t) );
 
     return interploatedColour;
-
 }
 
 /**
