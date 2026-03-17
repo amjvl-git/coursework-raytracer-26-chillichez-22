@@ -20,8 +20,6 @@ export class DirectionalLight{
      * 
      * @param {Number} specularIntensity Intensity of the specular. 
      * (Lower = More Specular).
-     * @param {Number} specularSize Size of the specular. 
-     * (Higher = Larger Specular Radius).
      * 
      * @param {Number} shadowIntensity Intensity of apllied shadows. 
      * (Higher = Deeper Shadows).
@@ -31,8 +29,7 @@ export class DirectionalLight{
     constructor(
         directionVector, 
         lightColour,
-        specularIntensity, 
-        specularSize, 
+        specularIntensity,
         shadowIntensity,
         ){
 
@@ -42,7 +39,6 @@ export class DirectionalLight{
         this.lightColour = lightColour;
 
         this.specularIntensity = specularIntensity;
-        this.specularSize = specularSize;
 
         this.shadowIntensity = shadowIntensity;
     }

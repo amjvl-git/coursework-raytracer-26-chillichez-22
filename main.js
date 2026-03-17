@@ -41,7 +41,7 @@ const bottomLeftNear = camPos
 
 const spheres = new Array(
 
-    new shapes.Sphere(  // Red
+    new shapes.Sphere(  // Red - Central
 
         new maths.Vector3(  // Centre
             0, 
@@ -61,12 +61,12 @@ const spheres = new Array(
         1  // Reflectivity
     ),
 
-    new shapes.Sphere( // Pink
+    new shapes.Sphere( // Pink - Behind
 
         new maths.Vector3( // Centre
-            0, 
             0.2, 
-            0 
+            0.2, 
+            0.1 
         ),
 
         0.15,  // Radius
@@ -81,7 +81,7 @@ const spheres = new Array(
         0    // Reflectivity
     ),
 
-    new shapes.Sphere( // Blue
+    new shapes.Sphere( // Blue - Top
 
         new maths.Vector3( // Centre
             0, 
@@ -101,7 +101,7 @@ const spheres = new Array(
         0  // Reflectivity
     ),
     
-    new shapes.Sphere( // Green
+    new shapes.Sphere( // Green - Floor
 
         new maths.Vector3( // Centre
             0, 
@@ -121,7 +121,7 @@ const spheres = new Array(
         0    // Reflectivity
     ),
 
-    new shapes.Sphere( // yellow
+    new shapes.Sphere( // Yellow - Right
 
         new maths.Vector3( // Centre
             -0.3, 
@@ -141,7 +141,7 @@ const spheres = new Array(
         1    // Reflectivity
     ),
 
-        new shapes.Sphere( // yellow
+    new shapes.Sphere( // Teal - Right
 
         new maths.Vector3( // Centre
             0.3, 
@@ -158,13 +158,33 @@ const spheres = new Array(
             1 
         ), 
  
-        0.65    // Reflectivity
+        0.5    // Reflectivity
     ),
 
 
 );
 
 // Global illumination & Settings
+
+// Directly down
+
+// const sun = new DirectionalLight(
+
+//     new maths.Vector3( // Direction
+//         0, 
+//         -1,
+//         0
+//     ).normalised(),
+
+//     new maths.Vector3( // Colour
+//         1,
+//         1,
+//         1
+//     ).normalised(),
+
+// )
+
+// 
 
 const sun = new DirectionalLight( 
 
@@ -181,14 +201,15 @@ const sun = new DirectionalLight(
     ).normalised(),
 
     4,      // Specular Intensity
-    1,    // Specular Size
-    60      // Shadow Intensity
+    10      // Shadow Intensity
 );
 
 const sceneAdditions = new renderer.SceneAdditions( 
-    true,    // Gamma Correction
-    25,       // MultiSample AntiAliasing (MSAA) Samples
-    10        // Max Number of Reflection Bounces
+    
+    1,         // Ambient light factor 
+    true,      // Gamma Correction
+    25,        // MultiSample AntiAliasing (MSAA) Samples
+    10         // Max Number of Reflection Bounces
 )
 
 console.log(
@@ -232,9 +253,7 @@ FUllSCREEN: 1700x1000p
 MSAA: 100
 Bounces: 10
 Load Time: ~96s 
-
 `)
-
 
 // Main Ray Tracer
 let colour = new maths.Vector3(0, 0, 0);
@@ -254,63 +273,46 @@ for (let i = 0; i < imageWidth; i++ ){
         
 
         // MSAA (Multi Sample Anti Aliasing)
-        if (sceneAdditions.msaaSampleCount != 1 ){
-        
-            for (let s = 0; s < sceneAdditions.msaaSampleCount; s++ ){
-                
-                const msaaPos = bottomLeftNear
-                        .added( horizontal.scaled( 
-                            u + (Math.random() - 0.5) / imageWidth) )
-
-                        .added( vertical.scaled( 
-                            v + (Math.random() - 0.5) / imageHeight) )
-
-                const msaaDir = msaaPos.subbed( camPos );
-
-                const msaaRay = new maths.Ray3(
-                    camPos,
-                    msaaDir
-                )
-                
-                colour = colour.added( 
-                    renderer.rayColour(
-                        msaaRay, 
-                        camPos,
-                        spheres,
-                        sun,
-                        sceneAdditions,
-                        true) 
-                )
-            }
-            colour.scale( 255 / sceneAdditions.msaaSampleCount )
+    
+        for (let s = 0; s < sceneAdditions.msaaSampleCount; s++ ){
             
-    
-        }
-        else{ // No MSAA
+            const msaaPos = bottomLeftNear
+                    .added( horizontal.scaled( 
+                        u + (Math.random() - 0.5) / imageWidth) )
 
-            // Creates ray from camera to each screen point
-    
-            const rayDir = bottomLeftNear
-                .added( horizontal.scaled(u) )
-                .added( vertical.scaled(v) )
-                .subbed( camPos )
+                    .added( vertical.scaled( 
+                        v + (Math.random() - 0.5) / imageHeight) )
 
-            const ray = new maths.Ray3( 
+            const msaaDir = msaaPos.subbed( camPos );
+
+            const msaaRay = new maths.Ray3(
                 camPos,
-                rayDir 
-            );
-
-            colour = 
-                renderer.rayColour( 
-                    ray, 
-                    camPos, 
-                    spheres, 
+                msaaDir
+            )
+            
+            colour = colour.added( 
+                renderer.rayColour(
+                    msaaRay, 
+                    camPos,
+                    spheres,
                     sun,
-                    sceneAdditions )
-                .scaled( 255 );
+                    sceneAdditions,
+                    true
+                ) 
+            )
         }
 
-        renderer.drawPixel( ctx, i, j, colour );
+        // Averages samples
+        colour.scale( 1 / sceneAdditions.msaaSampleCount )
+        
+        // Gamma Correction
+        if (sceneAdditions.doGammaCorrection){
+            
+            colour.pow( (1/2.2) );
+        }
+
+
+        renderer.drawPixel( ctx, i, j, colour.scaled(255) );
 
     }
 }
@@ -328,6 +330,8 @@ Height: ${imageHeight}
 -----------------------
 Spheres: ${spheres.length}
 -----------------------
+Phong Ambient
+    Strength: ${sceneAdditions.ambientFactor}
 Phong Diffuse
 Phong Specular
     Strength: ${sun.specularIntensity}
@@ -337,7 +341,8 @@ Recursive Reflection
 Shadow Cast
     Strength: ${sun.shadowIntensity}
 Gamma Correction: ${sceneAdditions.doGammaCorrection}
-MSAA: ${sceneAdditions.msaaSampleCount} Samples `)
+MSAA: 
+    Samples: ${sceneAdditions.msaaSampleCount} `)
 
 
 

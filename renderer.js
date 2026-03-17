@@ -12,6 +12,8 @@ export class SceneAdditions{
 
     /**
      * 
+     * 
+     * @param {Number} ambientFactor Factor for the base ambient
      * @param {boolean} doGammaCorrection Should gamma correction be apllied.
      * @param {Number} msaaSampleCount Number of samples in a grid the 
      * render uses to check for  
@@ -19,10 +21,13 @@ export class SceneAdditions{
      * recursive reflection can use, for a continous sphere
      */
     constructor(
+        ambientFactor,
         doGammaCorrection, 
         msaaSampleCount,
-    maxReflectionBounces ){
+        maxReflectionBounces 
+    ){
 
+        this.ambientFactor = ambientFactor;
         this.doGammaCorrection = doGammaCorrection;
         this.msaaSampleCount = msaaSampleCount;
         this.maxReflectionBounces = maxReflectionBounces;
@@ -173,6 +178,7 @@ export function rayColour(
     const reflectionColour = reflective.scaled(sphere.reflectivity);
 
     let colour = diffuseColour
+        .scaled( sceneAdditions.ambientFactor )
         .added(reflectionColour)
             
 
@@ -192,14 +198,9 @@ export function rayColour(
     if (shadowRayResult.t >= 0){
         colour.scale( 1/globalLight.shadowIntensity );
     } 
+    // 
     else if (isPrimaryRay){
         colour = colour.added(specular); 
-    }
-
-    // Gamma Correction
-    if (sceneAdditions.doGammaCorrection){
-        
-        colour.pow( (1/2.2) );
     }
 
     return colour
