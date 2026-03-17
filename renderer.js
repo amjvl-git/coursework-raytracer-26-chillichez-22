@@ -98,6 +98,7 @@ export function traceRay(ray, sphereList){
  * @param {Array<shapes.Sphere>} sphereList List of spheres.
  * @param {DirectionalLight} globalLight The global directional light.
  * @param {SceneAdditions} sceneAdditions Additional settings for the scene.
+ * @param {boolean} isPrimaryRay  If the ray is the first to be fired.
  * 
  * @returns {maths.Vector3} Pixel Colour, clamped from [0 min -> 1 max].
  */
@@ -106,7 +107,8 @@ export function rayColour(
     camPos, 
     sphereList, 
     globalLight,
-    sceneAdditions 
+    sceneAdditions,
+    isPrimaryRay = true
     ){
     
     let rayResult = traceRay(ray, sphereList);
@@ -121,12 +123,14 @@ export function rayColour(
     // Phong Albedo (Base Colour)
     const albedo = sphere.colour;
 
+
     // Phong Diffuse
     const diffuseStrength = Math.max( 
         rayResult.normal
             .dot( globalLight.antiLightDirection ),
         0 );
     const diffuse = globalLight.lightColour.scaled( diffuseStrength )
+
 
     // Phong Specular
     const reflectedLight = globalLight.lightDirection
@@ -145,41 +149,51 @@ export function rayColour(
 
     const specular = globalLight.lightColour.scaled( specularStrength );
 
-    // Reflectivity
+    // Reflections
+    let reflective = new maths.Vector3(0, 0, 0);
 
     // Starts a recursive tracer that
-    const reflective = reflectiveColour( 
+    if ( sphere.reflectivity > 0 ){
+        reflective = reflectiveColour( 
             ray, 
             rayResult, 
             camPos,
             sphereList, 
+            globalLight,
             sceneAdditions,
             1
-    );
+        );
+    }
     
     // Combines effects
-    let lighting = diffuse.added( specular );
+    const diffuseColour = albedo
+        .scaled(1 - sphere.reflectivity)
+        .multiplied(diffuse);
 
-    let colour = 
-        albedo.scaled(  1 - sphere.reflectivity)
-        
-        .added( reflective.scaled( sphere.reflectivity ) )
+    const reflectionColour = reflective.scaled(sphere.reflectivity);
 
-        
-    
+    let colour = diffuseColour
+        .added(reflectionColour)
+            
 
     // Shadow Casting
 
     const shadowRay = new maths.Ray3(
-        rayResult.pos,
+        rayResult.pos
+            .added( rayResult.normal
+                .scaled(0.05) 
+        ),
         globalLight.antiLightDirection 
     );
-    const shadowRayResult = traceRay( shadowRay, sphereList )
-    
-    // Shadow hits object
-    if  (shadowRayResult.t >= 0 ){
 
-        colour.scale( 1/globalLight.shadowIntensity );              
+    const shadowRayResult = traceRay( shadowRay, sphereList )
+
+    // Chooses either specular or shadow, not both
+    if (shadowRayResult.t >= 0){
+        colour.scale( 1/globalLight.shadowIntensity );
+    } 
+    else if (isPrimaryRay){
+        colour = colour.added(specular); 
     }
 
     // Gamma Correction
@@ -188,7 +202,7 @@ export function rayColour(
         colour.pow( (1/2.2) );
     }
 
-    return colour 
+    return colour
 }
 
 /**
@@ -223,13 +237,18 @@ export function reflectiveColour(
     
     // Failsafe, incase the rucursive goes on too long
     if (sceneAdditions.maxReflectionBounces <= bounces){
-        console.log(`Too many bounces aborting with BG colour`)
-        return backgroundColour(ray)
+        //console.log(`Too many bounces aborting with black colour`)
+        return new maths.Vector3(0, 0, 0)
     }
 
-    // Calculates 
+    // Calculates reflection ray
     const reflectedRay = new maths.Ray3(
-        rayResult.pos,
+
+        rayResult.pos
+            .added( rayResult.normal
+                .scaled(0.05) 
+        ),
+
         ray.direction
             .subbed( rayResult.normal
                 .scaled( 2 * rayResult.normal
@@ -237,8 +256,10 @@ export function reflectiveColour(
                 )
             )
     )
-    //reflectedRay.repr();
-    const reflectedRayResult = traceRay( reflectedRay, sphereList );
+
+    const reflectedRayResult = traceRay( 
+        reflectedRay, 
+        sphereList );
     
     // Ray misses object 
     // First recursion break
@@ -260,15 +281,24 @@ export function reflectiveColour(
             reflectedRayResult, 
             camPos,
             sphereList, 
+            globalLight,
             sceneAdditions,
             bounces
         ); 
         
-        return reflectedColour
-            .scaled( sphere.reflectivity )
-                    .added( sphere.colour
-                        .scaled( 1 - sphere.reflectivity)
-            )
+        const baseColour = rayColour(
+            reflectedRay,
+            camPos,
+            sphereList,
+            globalLight,
+            sceneAdditions,
+            false
+        )
+
+        return baseColour
+            .scaled( 1 - sphere.reflectivity )
+                .added( reflectedColour
+                    .scaled( sphere.reflectivity) )
 
     }
     
@@ -284,7 +314,8 @@ export function reflectiveColour(
         camPos, 
         sphereList, 
         globalLight, 
-        sceneAdditions 
+        sceneAdditions ,
+        false
     );
 
 }

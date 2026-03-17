@@ -61,7 +61,7 @@ const spheres = new Array(
         1  // Reflectivity
     ),
 
-    new shapes.Sphere( // Blue
+    new shapes.Sphere( // Pink
 
         new maths.Vector3( // Centre
             0, 
@@ -73,12 +73,32 @@ const spheres = new Array(
         1,     // Index
 
         new maths.Vector3( // Colour
+            1, 
+            0, 
+            1 
+        ), 
+ 
+        0    // Reflectivity
+    ),
+
+    new shapes.Sphere( // Blue
+
+        new maths.Vector3( // Centre
+            0, 
+            0.25, 
+            -0.75 
+        ),
+
+        0.15,  // Radius
+        2,     // Index
+
+        new maths.Vector3( // Colour
             0, 
             0, 
             1 
         ), 
  
-        1     // Reflectivity
+        0  // Reflectivity
     ),
     
     new shapes.Sphere( // Green
@@ -90,7 +110,7 @@ const spheres = new Array(
         ),
 
         100,  // Radius
-        2,    // Index
+        3,    // Index
 
         new maths.Vector3( // Colour
             0, 
@@ -98,8 +118,49 @@ const spheres = new Array(
             0 
         ),
         
+        0    // Reflectivity
+    ),
+
+    new shapes.Sphere( // yellow
+
+        new maths.Vector3( // Centre
+            -0.3, 
+            0, 
+            -0.4
+        ),
+
+        0.15,  // Radius
+        4,     // Index
+
+        new maths.Vector3( // Colour
+            1, 
+            1, 
+            0 
+        ), 
+ 
         1    // Reflectivity
-    ) 
+    ),
+
+        new shapes.Sphere( // yellow
+
+        new maths.Vector3( // Centre
+            0.3, 
+            0, 
+            -0.4
+        ),
+
+        0.15,  // Radius
+        5,     // Index
+
+        new maths.Vector3( // Colour
+            0, 
+            1, 
+            1 
+        ), 
+ 
+        0.65    // Reflectivity
+    ),
+
 
 );
 
@@ -119,40 +180,60 @@ const sun = new DirectionalLight(
         1
     ).normalised(),
 
-    1.3,      // Specular Intensity
+    4,      // Specular Intensity
     1,    // Specular Size
     60      // Shadow Intensity
 );
 
 const sceneAdditions = new renderer.SceneAdditions( 
     true,    // Gamma Correction
-    1,       // MultiSample AntiAliasing (MSAA) Samples
+    25,       // MultiSample AntiAliasing (MSAA) Samples
     10        // Max Number of Reflection Bounces
 )
 
 console.log(
 
-`Above MSSA 100, load times are 15s<, with little difference
+`
+Below are the average loads times i got on a 2.9Ghz Cpu 16Gb Ram,
+load times may vary.
+Above MSSA 100, load times are 30s<, with little difference.
+Bounces at 10 was more than enough
 
+All Tests Done At Width: 900, Hieght: 500
 ---------------
 MSSA: 1
 Bounces: 10
-Load Time: ~0.9s
+Load Time: ~1.1s
+
+---------------
+MSSA: 25
+Bounces: 10
+Load Time: ~7.8s
+
 
 ---------------
 MSSA: 50
 Bounces: 10
-Load Time: ~8.2s
+Load Time: ~14.1s
 
 ---------------
 MSAA: 75
 Bounces: 10
-Load Time: ~11.5s
+Load Time: ~19.6s
 
 ---------------
 MSAA: 100
 Bounces: 10
-Load Time: ~ 15.7s `)
+Load Time: ~ 27.4s 
+
+--------------- 
+Super Mega Ultra Test:
+FUllSCREEN: 1700x1000p
+MSAA: 100
+Bounces: 10
+Load Time: ~96s 
+
+`)
 
 
 // Main Ray Tracer
@@ -197,7 +278,8 @@ for (let i = 0; i < imageWidth; i++ ){
                         camPos,
                         spheres,
                         sun,
-                        sceneAdditions) 
+                        sceneAdditions,
+                        true) 
                 )
             }
             colour.scale( 255 / sceneAdditions.msaaSampleCount )
