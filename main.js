@@ -4,8 +4,7 @@ import * as renderer from "./renderer.js";
 import { DirectionalLight } from "./lights.js";
 
 // Assign canvas and ctx, related variables
-export const canvas = document.createElement("canvas");
-document.body.appendChild(canvas );
+export const canvas = document.getElementById("mainCanvas");
 export const ctx = canvas.getContext("2d");
 
 // Resive anyway to make sure the canvas is the correct size
@@ -205,8 +204,8 @@ const sceneSettings = new renderer.sceneSettings(
     1,         // Ambient light factor 
     4,         // Specular Intensity
     10,        // Shadow Intensity
-    true,      // Gamma Correction
-    25,        // MultiSample AntiAliasing (MSAA) Samples
+    false,      // Gamma Correction
+    50,        // MultiSample AntiAliasing (MSAA) Samples
     10         // Max Number of Reflection Bounces
 )
 
@@ -252,6 +251,11 @@ Bounces: 10
 Load Time: ~96s 
 `)
 
+/**
+ * Main JS Ray Tracer function
+ * 
+ * So it can be easily re-called and re-started with different variables
+ */
 function startRayTracer(){
         
     // Main Ray Tracer

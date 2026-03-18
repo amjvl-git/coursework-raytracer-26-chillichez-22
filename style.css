@@ -1,0 +1,49 @@
+body {
+    margin: 4;
+    background: #111;
+    color: rgb(255, 255, 255);
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: medium;
+    overflow: hidden;
+    height: 100%;
+}
+
+#container{
+
+    display: flex;
+    height: 100vh;
+}
+
+#controls{
+
+    width: 250px;
+    background: #222;
+    color: white;
+    padding: 20px;
+
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 4px;
+}
+
+#sceneSelect{
+    height: 25px;
+}
+
+#sphereSelect{
+    height: 25px;
+}
+
+#slideContainer{
+    /* Change slider a bit*/
+}
+
+#mainCanvas{
+
+    flex: 1;
+    background: black;
+    display: block;
+}
+
+
