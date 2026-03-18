@@ -24,14 +24,14 @@ const veiwportWidth = 2;
 const veiwportHeight = veiwportWidth * aspectRatio;
 const focalLength = 1.0;
 
-const camPos = new maths.Vector3( 0, 0, 0);
-const horizontal = new maths.Vector3( veiwportWidth, 0, 0 );
-const vertical = new maths.Vector3( 0, veiwportHeight, 0 );
+let camPos = new maths.Vector3( 0, 0, 0);
+let horizontal = new maths.Vector3( veiwportWidth, 0, 0 );
+let vertical = new maths.Vector3( 0, veiwportHeight, 0 );
 
 /**
  * @type maths.Vector3
  */
-const bottomLeftNear = camPos
+let bottomLeftNear = camPos
     .subbed( horizontal.scaled( 0.5 ) )
     .subbed( vertical.scaled( 0.5 ) )
     .subbed( new maths.Vector3( 0, 0, focalLength) )
@@ -166,25 +166,24 @@ const spheres = new Array(
 
 // Global illumination & Settings
 
-// Directly down
 
-// const sun = new DirectionalLight(
+/* Directly down
 
-//     new maths.Vector3( // Direction
-//         0, 
-//         -1,
-//         0
-//     ).normalised(),
+const sun = new DirectionalLight(
 
-//     new maths.Vector3( // Colour
-//         1,
-//         1,
-//         1
-//     ).normalised(),
+    new maths.Vector3( // Direction
+        0, 
+        -1,
+        0
+    ).normalised(),
 
-// )
+    new maths.Vector3( // Colour
+        1,
+        1,
+        1
+    ).normalised(),
+) */
 
-// 
 
 const sun = new DirectionalLight( 
 
@@ -204,7 +203,7 @@ const sun = new DirectionalLight(
     10      // Shadow Intensity
 );
 
-const sceneAdditions = new renderer.SceneAdditions( 
+const sceneSettings = new renderer.sceneSettings( 
     
     1,         // Ambient light factor 
     true,      // Gamma Correction
@@ -275,7 +274,7 @@ function startRayTracer(){
 
             // MSAA (Multi Sample Anti Aliasing)
         
-            for (let s = 0; s < sceneAdditions.msaaSampleCount; s++ ){
+            for (let s = 0; s < sceneSettings.msaaSampleCount; s++ ){
                 
                 const msaaPos = bottomLeftNear
                         .added( horizontal.scaled( 
@@ -297,17 +296,17 @@ function startRayTracer(){
                         camPos,
                         spheres,
                         sun,
-                        sceneAdditions,
+                        sceneSettings,
                         true
                     ) 
                 )
             }
 
             // Averages samples
-            colour.scale( 1 / sceneAdditions.msaaSampleCount )
+            colour.scale( 1 / sceneSettings.msaaSampleCount )
             
             // Gamma Correction
-            if (sceneAdditions.doGammaCorrection){
+            if (sceneSettings.doGammaCorrection){
                 
                 colour.pow( (1/2.2) );
             }
@@ -321,45 +320,42 @@ function startRayTracer(){
     const EndTime = performance.now();
 
     console.log(`
-    Finished Placing Pixels
-    -----------------------
-    Time: ${(EndTime-StartTime) / 1000}s
+Finished Placing Pixels
+-----------------------
+Time: ${(EndTime-StartTime) / 1000}s
 
-    Pixels: ${imageWidth * imageHeight} 
-    Width: ${imageWidth}
-    Height: ${imageHeight}
-    -----------------------
-    Spheres: ${spheres.length}
-    -----------------------
-    Phong Ambient
-        Strength: ${sceneAdditions.ambientFactor}
-    Phong Diffuse
-    Phong Specular
-        Strength: ${sun.specularIntensity}
-        Size: ${sun.specularSize}
-    Shadow Cast
-        Strength: ${sun.shadowIntensity}
-    
-    Gamma Correction: ${sceneAdditions.doGammaCorrection}
-    MSAA: 
-        Samples: ${sceneAdditions.msaaSampleCount}
-         
-    Recursive Reflection
-        Max Bounces: ${sceneAdditions.maxReflectionBounces}
-    `)
+Pixels: ${imageWidth * imageHeight} 
+Width: ${imageWidth}
+Height: ${imageHeight}
+-----------------------
+Spheres: ${spheres.length}
+-----------------------
+Phong Ambient
+    Strength: ${sceneSettings.ambientFactor}
+Phong Diffuse
+Phong Specular
+    Strength: ${sun.specularIntensity}
+    Size: ${sun.specularSize}
+Shadow Cast
+    Strength: ${sun.shadowIntensity}
+
+Gamma Correction: ${sceneSettings.doGammaCorrection}
+Multi Sample Anti Aliasing, (MSAA)
+    Samples: ${sceneSettings.msaaSampleCount}
+        
+Recursive Reflection
+    Max Bounces: ${sceneSettings.maxReflectionBounces}
+`)
 
 }
 
 startRayTracer();
 
-
 // Listeners
-
 function resize(){
 
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
-    startRayTracer();
 }
 
 window.addEventListener('resize', resize);
