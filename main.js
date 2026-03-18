@@ -198,14 +198,13 @@ const sun = new DirectionalLight(
         1,
         1
     ).normalised(),
-
-    4,      // Specular Intensity
-    10      // Shadow Intensity
 );
 
 const sceneSettings = new renderer.sceneSettings( 
     
     1,         // Ambient light factor 
+    4,         // Specular Intensity
+    10,        // Shadow Intensity
     true,      // Gamma Correction
     25,        // MultiSample AntiAliasing (MSAA) Samples
     10         // Max Number of Reflection Bounces
@@ -218,7 +217,7 @@ load times may vary.
 Above MSSA 100, load times are 30s<, with little difference.
 Bounces at 10 was more than enough
 
-All Tests Done At Width: 900, Hieght: 500
+All Tests Done At Width: 900, Height: 500
 ---------------
 MSSA: 1
 Bounces: 10
@@ -267,15 +266,14 @@ function startRayTracer(){
             colour = new maths.Vector3(0, 0, 0);
 
             // Get the UV co-ord from [0 -> 1]
-
             let u =  i / ( imageWidth - 1 );
-            let v =  1 - j / ( imageHeight - 1 ); // ( 1 - ), since y is flipped
+            let v =  1 - j / ( imageHeight - 1 ); // (1 -), since y is flipped
             
 
             // MSAA (Multi Sample Anti Aliasing)
-        
             for (let s = 0; s < sceneSettings.msaaSampleCount; s++ ){
                 
+                // Move the position of the pixel, and not the direction
                 const msaaPos = bottomLeftNear
                         .added( horizontal.scaled( 
                             u + (Math.random() - 0.5) / imageWidth) )
@@ -284,7 +282,8 @@ function startRayTracer(){
                             v + (Math.random() - 0.5) / imageHeight) )
 
                 const msaaDir = msaaPos.subbed( camPos );
-
+                
+                // Create ray for each sample 
                 const msaaRay = new maths.Ray3(
                     camPos,
                     msaaDir
@@ -297,12 +296,13 @@ function startRayTracer(){
                         spheres,
                         sun,
                         sceneSettings,
-                        true
+                        true // Is the primary ray, so include specular
                     ) 
                 )
+
             }
 
-            // Averages samples
+            // Averages every samples, so colours arent blown out
             colour.scale( 1 / sceneSettings.msaaSampleCount )
             
             // Gamma Correction
@@ -310,7 +310,6 @@ function startRayTracer(){
                 
                 colour.pow( (1/2.2) );
             }
-
 
             renderer.drawPixel( ctx, i, j, colour.scaled(255) );
 
@@ -335,7 +334,6 @@ Phong Ambient
 Phong Diffuse
 Phong Specular
     Strength: ${sun.specularIntensity}
-    Size: ${sun.specularSize}
 Shadow Cast
     Strength: ${sun.shadowIntensity}
 
@@ -352,6 +350,7 @@ Recursive Reflection
 startRayTracer();
 
 // Listeners
+
 function resize(){
 
     canvas.width = window.innerWidth;
@@ -359,3 +358,4 @@ function resize(){
 }
 
 window.addEventListener('resize', resize);
+

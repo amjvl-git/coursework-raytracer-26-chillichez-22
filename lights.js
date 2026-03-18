@@ -17,29 +17,17 @@ export class DirectionalLight{
      * light to travel.
      * 
      * @param {maths.Vector3} lightColour Colour of the emmited light. 
-     * 
-     * @param {Number} specularIntensity Intensity of the specular. 
-     * (Lower = More Specular).
-     * 
-     * @param {Number} shadowIntensity Intensity of apllied shadows. 
-     * (Higher = Deeper Shadows).
-     * 
-     * 
      */
     constructor(
         directionVector, 
         lightColour,
-        specularIntensity,
-        shadowIntensity,
-        ){
 
-        this.lightDirection = directionVector;
-        this.antiLightDirection = directionVector.scaled(-1);
+    ){
+
+        this.lightDirection = directionVector.normalised();
+        this.antiLightDirection = directionVector.normalised().scaled(-1);
         
         this.lightColour = lightColour;
 
-        this.specularIntensity = specularIntensity;
-
-        this.shadowIntensity = shadowIntensity;
     }
 }

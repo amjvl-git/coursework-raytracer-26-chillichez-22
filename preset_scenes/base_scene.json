@@ -1,0 +1,50 @@
+{
+    "CamPos": [ 0, 0, 0 ],
+    
+    "Spheres": 
+    [
+        {
+            "name": "Red",        
+            "centre":  [0, 0, -1],
+            "radius": 0.3,
+            "index": 0,
+            "colour": [1, 0, 0],
+            "reflectivity": 0 
+        },
+
+        {
+            "name": "Blue", 
+            "centre":  [0, 0.2, -0.8],
+            "radius": 0.15,
+            "index": 1,
+            "colour": [0, 0, 1],
+            "reflectivity": 0 
+        },
+
+        {
+            "name": "Green", 
+            "centre":  [0, -100.5, -1],
+            "radius": 100,
+            "index": 2,
+            "colour": [0, 1, 0],
+            "reflectivity": 0 
+        }
+    ],
+
+    "Light":
+    {
+        "lightDirection": [ -1.1, 1.3, -1.5 ],
+        "lightColour": [ 1, 1, 1 ]
+    },
+
+    "Settings":
+    {
+        "ambientFactor": 1,
+        "specularIntensity": 4,
+        "shadowIntensity": 10,
+        "doGammaCorrection": true,
+        "msaaSampleCount": 1,
+        "maxReflectionBounces": 10
+    }
+
+}

@@ -11,26 +11,37 @@ import { DirectionalLight } from "./lights.js";
 export class sceneSettings{
 
     /**
-     * 
+     * Global settings fot the scene.
      * 
      * @param {Number} ambientFactor Factor for the base ambient
+     * @param {Number} specularIntensity Intensity of the specular. 
+     * (Lower = More Specular).
+     * @param {Number} shadowIntensity Intensity of apllied shadows. 
+     * (Higher = Deeper Shadows).
+     * 
      * @param {boolean} doGammaCorrection Should gamma correction be apllied.
-     * @param {Number} msaaSampleCount Number of samples in a grid the 
-     * render uses to check for  
+     * @param {Number} msaaSampleCount Number of random samples to use for
+     * the multi sample anti aliasing (MSAA)
+     *   
      * @param {Number} maxReflectionBounces Max number of bounces the
      * recursive reflection can use, for a continous sphere
      */
     constructor(
         ambientFactor,
+        specularIntensity,
+        shadowIntensity,
         doGammaCorrection, 
         msaaSampleCount,
         maxReflectionBounces 
     ){
 
         this.ambientFactor = ambientFactor;
+        this.specularIntensity = specularIntensity;
+        this.shadowIntensity = shadowIntensity;
         this.doGammaCorrection = doGammaCorrection;
         this.msaaSampleCount = msaaSampleCount;
         this.maxReflectionBounces = maxReflectionBounces;
+
     }
 
 }
@@ -98,8 +109,8 @@ export function traceRay(ray, sphereList){
  *  * Phong - Ambient
  *  * Phong - Diffuse Lighting
  *  * Phong - Specular Lighting
+ *  * Reflections
  *  * Shadow Casting
- *  * Spherical Reflections
  * 
  * @param {maths.Ray3} ray Ray fires from the camera to the screen.
  * @param {maths.Vector3} camPos Position of the main camera in the scene.
@@ -155,7 +166,7 @@ export function rayColour(
     const specularStrength = Math.max( 
         viewDirection.dot(reflectedLight), 
         0.0 
-    ) ** globalLight.specularIntensity;
+    ) ** sceneSettings.specularIntensity;
 
     const specular = globalLight.lightColour.scaled( specularStrength );
 
@@ -205,7 +216,7 @@ export function rayColour(
     // Chooses either specular or shadow, not both
     
     if (shadowRayResult.t >= 0){
-        colour.scale( 1/globalLight.shadowIntensity );
+        colour.scale( 1 / sceneSettings.shadowIntensity );
     } 
 
     // Only adds specular on the primary / first ray in a recursive chain,
