@@ -213,9 +213,8 @@ const sceneAdditions = new renderer.SceneAdditions(
 )
 
 console.log(
-
 `
-Below are the average loads times i got on a 2.9Ghz Cpu 16Gb Ram,
+Below are the average loads times i got on a: 2.9Ghz Cpu 16Gb Ram,
 load times may vary.
 Above MSSA 100, load times are 30s<, with little difference.
 Bounces at 10 was more than enough
@@ -255,96 +254,103 @@ Bounces: 10
 Load Time: ~96s 
 `)
 
-// Main Ray Tracer
-let colour = new maths.Vector3(0, 0, 0);
-console.log("Started Placing Pixels")
-const StartTime = performance.now()
-
-// Iterates over each X and Y
-for (let i = 0; i < imageWidth; i++ ){
-    for ( let j = 0; j < imageHeight; j++ ){
-
-        colour = new maths.Vector3(0, 0, 0);
-
-        // Get the UV co-ord from [0 -> 1]
-
-        let u =  i / ( imageWidth - 1 );
-        let v =  1 - j / ( imageHeight - 1 ); // ( 1 - ), since y is flipped
+function startRayTracer(){
         
+    // Main Ray Tracer
+    let colour = new maths.Vector3(0, 0, 0);
+    console.log("Started Placing Pixels")
+    const StartTime = performance.now()
 
-        // MSAA (Multi Sample Anti Aliasing)
-    
-        for (let s = 0; s < sceneAdditions.msaaSampleCount; s++ ){
+    // Iterates over each X and Y
+    for (let i = 0; i < imageWidth; i++ ){
+        for ( let j = 0; j < imageHeight; j++ ){
+
+            colour = new maths.Vector3(0, 0, 0);
+
+            // Get the UV co-ord from [0 -> 1]
+
+            let u =  i / ( imageWidth - 1 );
+            let v =  1 - j / ( imageHeight - 1 ); // ( 1 - ), since y is flipped
             
-            const msaaPos = bottomLeftNear
-                    .added( horizontal.scaled( 
-                        u + (Math.random() - 0.5) / imageWidth) )
 
-                    .added( vertical.scaled( 
-                        v + (Math.random() - 0.5) / imageHeight) )
+            // MSAA (Multi Sample Anti Aliasing)
+        
+            for (let s = 0; s < sceneAdditions.msaaSampleCount; s++ ){
+                
+                const msaaPos = bottomLeftNear
+                        .added( horizontal.scaled( 
+                            u + (Math.random() - 0.5) / imageWidth) )
 
-            const msaaDir = msaaPos.subbed( camPos );
+                        .added( vertical.scaled( 
+                            v + (Math.random() - 0.5) / imageHeight) )
 
-            const msaaRay = new maths.Ray3(
-                camPos,
-                msaaDir
-            )
-            
-            colour = colour.added( 
-                renderer.rayColour(
-                    msaaRay, 
+                const msaaDir = msaaPos.subbed( camPos );
+
+                const msaaRay = new maths.Ray3(
                     camPos,
-                    spheres,
-                    sun,
-                    sceneAdditions,
-                    true
-                ) 
-            )
-        }
+                    msaaDir
+                )
+                
+                colour = colour.added( 
+                    renderer.rayColour(
+                        msaaRay, 
+                        camPos,
+                        spheres,
+                        sun,
+                        sceneAdditions,
+                        true
+                    ) 
+                )
+            }
 
-        // Averages samples
-        colour.scale( 1 / sceneAdditions.msaaSampleCount )
-        
-        // Gamma Correction
-        if (sceneAdditions.doGammaCorrection){
+            // Averages samples
+            colour.scale( 1 / sceneAdditions.msaaSampleCount )
             
-            colour.pow( (1/2.2) );
+            // Gamma Correction
+            if (sceneAdditions.doGammaCorrection){
+                
+                colour.pow( (1/2.2) );
+            }
+
+
+            renderer.drawPixel( ctx, i, j, colour.scaled(255) );
+
         }
-
-
-        renderer.drawPixel( ctx, i, j, colour.scaled(255) );
-
     }
+
+    const EndTime = performance.now();
+
+    console.log(`
+    Finished Placing Pixels
+    -----------------------
+    Time: ${(EndTime-StartTime) / 1000}s
+
+    Pixels: ${imageWidth * imageHeight} 
+    Width: ${imageWidth}
+    Height: ${imageHeight}
+    -----------------------
+    Spheres: ${spheres.length}
+    -----------------------
+    Phong Ambient
+        Strength: ${sceneAdditions.ambientFactor}
+    Phong Diffuse
+    Phong Specular
+        Strength: ${sun.specularIntensity}
+        Size: ${sun.specularSize}
+    Shadow Cast
+        Strength: ${sun.shadowIntensity}
+    
+    Gamma Correction: ${sceneAdditions.doGammaCorrection}
+    MSAA: 
+        Samples: ${sceneAdditions.msaaSampleCount}
+         
+    Recursive Reflection
+        Max Bounces: ${sceneAdditions.maxReflectionBounces}
+    `)
+
 }
 
-const EndTime = performance.now();
-
-console.log(`
-Finished Placing Pixels
------------------------
-Time: ${(EndTime-StartTime) / 1000}s
-
-Pixels: ${imageWidth * imageHeight} 
-Width: ${imageWidth}
-Height: ${imageHeight}
------------------------
-Spheres: ${spheres.length}
------------------------
-Phong Ambient
-    Strength: ${sceneAdditions.ambientFactor}
-Phong Diffuse
-Phong Specular
-    Strength: ${sun.specularIntensity}
-    Size: ${sun.specularSize}
-Recursive Reflection
-    Max Bounces: ${sceneAdditions.maxReflectionBounces}
-Shadow Cast
-    Strength: ${sun.shadowIntensity}
-Gamma Correction: ${sceneAdditions.doGammaCorrection}
-MSAA: 
-    Samples: ${sceneAdditions.msaaSampleCount} `)
-
-
+startRayTracer();
 
 
 // Listeners
@@ -353,6 +359,7 @@ function resize(){
 
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
+    startRayTracer();
 }
 
 window.addEventListener('resize', resize);

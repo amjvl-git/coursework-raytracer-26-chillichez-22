@@ -128,7 +128,6 @@ export function rayColour(
     // Phong Albedo (Base Colour)
     const albedo = sphere.colour;
 
-
     // Phong Diffuse
     const diffuseStrength = Math.max( 
         rayResult.normal
@@ -157,7 +156,7 @@ export function rayColour(
     // Reflections
     let reflective = new maths.Vector3(0, 0, 0);
 
-    // Starts a recursive tracer that
+    // Starts a recursive tracer
     if ( sphere.reflectivity > 0 ){
         reflective = reflectiveColour( 
             ray, 
@@ -170,7 +169,7 @@ export function rayColour(
         );
     }
     
-    // Combines effects
+    // Combines Phong light model and effects
     const diffuseColour = albedo
         .scaled(1 - sphere.reflectivity)
         .multiplied(diffuse);
@@ -179,7 +178,7 @@ export function rayColour(
 
     let colour = diffuseColour
         .scaled( sceneAdditions.ambientFactor )
-        .added(reflectionColour)
+        .added( reflectionColour )
             
 
     // Shadow Casting
@@ -195,6 +194,7 @@ export function rayColour(
     const shadowRayResult = traceRay( shadowRay, sphereList )
 
     // Chooses either specular or shadow, not both
+    
     if (shadowRayResult.t >= 0){
         colour.scale( 1/globalLight.shadowIntensity );
     } 
