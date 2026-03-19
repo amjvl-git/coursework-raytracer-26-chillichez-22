@@ -255,7 +255,6 @@ window.addEventListener('resize', resize);
 
 
 // Scene Settings
-
 let sceneSelect = document.getElementById('sceneSelect');
 let sceneReload = document.getElementById('sceneReload');
 
@@ -269,6 +268,13 @@ let msaaSlider = document.getElementById('msaaSamples');
 let bounceSlider = document.getElementById('reflectionBounces');
 let fresnelSlider = document.getElementById('fresnelPower');
 
+// Lighting
+
+let lightSliderX = document.getElementById("lightX")
+let lightSliderY = document.getElementById("lightY")
+let lightSliderZ = document.getElementById("lightZ") 
+let lightColourPicker = document.getElementById('lightColour');
+
 // Sphere Selection
 let sphereSliderX = document.getElementById("spherePosX")
 let sphereSliderY = document.getElementById("spherePosY")
@@ -276,7 +282,7 @@ let sphereSliderZ = document.getElementById("spherePosZ")
 
 let radiusSlider = document.getElementById('sphereRadius');
 let reflectivitySlider = document.getElementById('sphereReflectivity');
-let colourPicker = document.getElementById('sphereColour');
+let sphereColourPicker = document.getElementById('sphereColour');
 
 
 /**
@@ -373,6 +379,11 @@ function changeScene(){
     sceneSettings.maxReflectionBounces = settings["maxReflectionBounces"];
     sceneSettings.fresnelPower = settings["fresnelPower"];
 
+    lightSliderX.value = sun.lightDirection.x
+    lightSliderY.value = sun.lightDirection.y
+    lightSliderZ.value = sun.lightDirection.z
+    lightColourPicker.value = rgbToHex( sun.lightColour.scaled(255) );
+
     console.log("settings", sceneSettings)
     console.log("Scene changed to: ", sceneIndex)
 
@@ -414,12 +425,14 @@ function changeSphere(){
 
     radiusSlider.value = currentSphere.radius * 100;
     reflectivitySlider.value = currentSphere.reflectivity * 100;  
-    colourPicker.value = rgbToHex( currentSphere.colour.scaled(255) );
+    sphereColourPicker.value = rgbToHex( currentSphere.colour.scaled(255) );
     
     console.log("sphere currently selected: ", sphereIndex)
 
 }
 
+
+// Settings
 
 sceneReload.addEventListener('click', () =>{
     startRayTracer();
@@ -455,6 +468,46 @@ fresnelSlider.addEventListener('change', () => {
     sceneSettings.fresnelPower = parseInt(fresnelSlider.value);
 })
 
+// Lighting
+
+
+lightSliderX.addEventListener('change', () => {
+
+    sun.setLightDirection( new maths.Vector3(
+        parseInt(lightX.value), 
+        sun.lightDirection.y, 
+        sun.lightDirection.z
+        )
+    )
+})
+lightSliderY.addEventListener('change', () => {
+
+    sun.setLightDirection( new maths.Vector3(
+        sun.lightDirection.x,
+        parseInt(lightY.value), 
+        sun.lightDirection.z
+        )
+    )
+})
+lightSliderZ.addEventListener('change', () => {
+
+    sun.setLightDirection( new maths.Vector3(
+        sun.lightDirection.x,  
+        sun.lightDirection.y, 
+        parseInt(lightZ.value)
+        )
+    )
+})
+
+lightColourPicker.addEventListener('change', () => {
+
+    console.log("Colour", hexToRgb(lightColourPicker.value).scaled( 1/255) )
+
+    spheres[ sphereIndex ].colour = 
+        hexToRgb( lightColourPicker.value )
+            .scaled( 1/255);
+})
+
 // Spheres
 
 sphereSelect.addEventListener('change', () =>{
@@ -486,12 +539,12 @@ reflectivitySlider.addEventListener('change', () => {
         parseFloat(reflectivitySlider.value / 100);
 })
 
-colourPicker.addEventListener('change', () => {
+sphereColourPicker.addEventListener('change', () => {
 
-    console.log("Colour", hexToRgb(colourPicker.value).scaled( 1/255) )
+    console.log("Colour", hexToRgb(sphereColourPicker.value).scaled( 1/255) )
 
     spheres[ sphereIndex ].colour = 
-        hexToRgb( colourPicker.value )
+        hexToRgb( sphereColourPicker.value )
             .scaled( 1/255);
 })
 

@@ -63,11 +63,38 @@
                     <input type="range" min="0" max="30" value="15" class="slider" id="fresnelPower">
                 </div>
                 
+                <!-- Line break -->
+                <a></a>
+                <b>Lighting</b>
+
+                <div id="lightDir">
+                    <a>Lighting Direction</a>
+                    <div id = "lightSliderX", class="slideContainer">
+                    <a>X</a>
+                    <input type="range" min="-5" max="5" value="0" class="slider" id="lightX">
+                    </div>
+
+                    <div id = "lightSliderY", class="slideContainer">
+                    <a>Y</a>
+                    <input type="range" min="-5" max="5" value="0" class="slider" id="lightY">
+                    </div>
+
+                    <div id = "lightSliderZ", class="slideContainer">
+                    <a>Z</a>
+                    <input type="range" min="-5" max="5" value="0" class="slider" id="lightZ">
+                    </div>
+                </div> 
+
+                <div id = "lightColourPicker", class="colourPicker">
+                    <a>Light Colour</a>
+                    <input type="color" id = lightColour>
+                </div>
+
                
             </div>
             <div id = "world">    
 
-                <a>Spheres</a> <!-- "Line Break" -->
+                <b>Spheres</b> <!-- "Line Break" -->
                 <!-- Sphere Selection -->
 
                 <select class = "notSliders" id = "sphereSelect">
