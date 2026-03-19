@@ -43,8 +43,9 @@
         "specularIntensity": 4,
         "shadowIntensity": 10,
         "doGammaCorrection": true,
-        "msaaSampleCount": 1,
-        "maxReflectionBounces": 10
+        "msaaSampleCount": 25,
+        "maxReflectionBounces": 1,
+        "fresnelPower": 1
     }
 
 }

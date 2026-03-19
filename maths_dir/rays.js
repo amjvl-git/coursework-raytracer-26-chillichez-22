@@ -17,6 +17,9 @@ export class Ray3{
         this.direction = directionVector;
     }
 
+    /**
+     * Prints the ray's origin and direction, to the screen
+     */
     repr(){
 
         console.log("Ray3: ", this.start, this.direction)

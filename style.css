@@ -39,6 +39,10 @@ body {
     /* Change slider a bit*/
 }
 
+#colourPicker{
+    width: 250px;
+}
+
 #mainCanvas{
 
     flex: 1;

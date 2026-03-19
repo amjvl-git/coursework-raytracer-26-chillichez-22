@@ -370,6 +370,7 @@ export class Vector3 extends BaseVector{
     }
 
 
+
     // Calculations
             
     /**
@@ -535,7 +536,6 @@ export class Vector3 extends BaseVector{
         )
     }
 
-
     
     /**
      * Return this vector normalised to a unit vector, with magnitude 1.
@@ -625,6 +625,20 @@ export class Vector3 extends BaseVector{
             ( this.x + otherVector.y ) - ( this.y + otherVector.x )
         );
 
+    }
+
+    /**
+     * Calculates the incident angles to the other vector
+     * 
+     * @param {Vector3} otherVector Vector
+     * 
+     * @returns {Number} This incident, to other vector
+     */
+    incidentToVector( otherVector ){
+
+        const dotProduct = this.dot( otherVector );
+
+        return Math.acos( dotProduct / (this.magnitude * otherVector.magnitude ) )
     }
 
     // Rotations

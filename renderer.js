@@ -14,10 +14,12 @@ export class sceneSettings{
      * Global settings fot the scene.
      * 
      * @param {Number} ambientFactor Factor for the base ambient
-     * @param {Number} specularIntensity Intensity of the specular. 
+     * @param {Number} specularPower Intensity of the specular. 
      * (Lower = More Specular).
+     * 
      * @param {Number} shadowIntensity Intensity of apllied shadows. 
      * (Higher = Deeper Shadows).
+     * @param {Number} shadowSamples Sharpness of the Shadows.
      * 
      * @param {boolean} doGammaCorrection Should gamma correction be apllied.
      * @param {Number} msaaSampleCount Number of random samples to use for
@@ -25,22 +27,28 @@ export class sceneSettings{
      *   
      * @param {Number} maxReflectionBounces Max number of bounces the
      * recursive reflection can use, for a continous sphere
+     * @param {Number} fresnelPower Power of the fresnel effect around the 
+     * edge of the sphere.
      */
     constructor(
         ambientFactor,
-        specularIntensity,
+        specularPower,
         shadowIntensity,
+        shadowSamples,
         doGammaCorrection, 
         msaaSampleCount,
-        maxReflectionBounces 
+        maxReflectionBounces,
+        fresnelPower 
     ){
 
         this.ambientFactor = ambientFactor;
-        this.specularIntensity = specularIntensity;
+        this.specularPower = specularPower;
         this.shadowIntensity = shadowIntensity;
+        this.shadowSamples = shadowSamples;
         this.doGammaCorrection = doGammaCorrection;
         this.msaaSampleCount = msaaSampleCount;
         this.maxReflectionBounces = maxReflectionBounces;
+        this.fresnelPower = fresnelPower;
 
     }
 
@@ -113,6 +121,8 @@ export function traceRay(ray, sphereList){
  *  * Shadow Casting
  * 
  * @param {maths.Ray3} ray Ray fires from the camera to the screen.
+ * @param {Number} imageWidth Width of the canvas.
+ * @param {Number} imageHeight Height of the canvas.
  * @param {maths.Vector3} camPos Position of the main camera in the scene.
  * @param {Array<shapes.Sphere>} sphereList List of spheres.
  * @param {DirectionalLight} globalLight The global directional light.
@@ -124,6 +134,8 @@ export function traceRay(ray, sphereList){
 export function rayColour(
     ray, 
     camPos, 
+    imageWidth,
+    imageHeight,
     sphereList, 
     globalLight,
     sceneSettings,
@@ -150,8 +162,24 @@ export function rayColour(
         rayResult.normal.dot( globalLight.antiLightDirection ),
         0 
     );
-    const diffuse = globalLight.lightColour.scaled( diffuseStrength )
+    let diffuse = globalLight.lightColour.scaled( diffuseStrength )
 
+
+    // Fresnel lighting
+
+    let fresnelStrength = (1 - 
+        Math.max(
+            0, 
+            Math.min(
+                1, 
+                rayResult.normal.normalised()
+                    .dot( ray.direction.normalised()
+                        .scaled( -1 ) 
+                    ) 
+            ) 
+        )
+    ) ** sceneSettings.fresnelPower
+    
 
     // Phong Specular
 
@@ -166,7 +194,7 @@ export function rayColour(
     const specularStrength = Math.max( 
         viewDirection.dot(reflectedLight), 
         0.0 
-    ) ** sceneSettings.specularIntensity;
+    ) ** sceneSettings.specularPower;
 
     const specular = globalLight.lightColour.scaled( specularStrength );
 
@@ -180,6 +208,8 @@ export function rayColour(
             ray, 
             rayResult, 
             camPos,
+            imageWidth,
+            imageHeight,
             sphereList, 
             globalLight,
             sceneSettings,
@@ -189,41 +219,73 @@ export function rayColour(
 
     // Makes the colours
 
+    // Creates base colour
     const diffuseColour = albedo
         .scaled(1 - sphere.reflectivity)
-        .multiplied(diffuse);
+        .multiplied(diffuse)
 
     const reflectionColour = reflective.scaled(sphere.reflectivity);
+    const fresnelColour = new maths.Vector3(
+        fresnelStrength,
+        fresnelStrength,
+        fresnelStrength
+    );
 
     // Combines: phong ambient & phong diffuse & reflective
     let colour = diffuseColour
-        .scaled( sceneSettings.ambientFactor )
         .added( reflectionColour )
-            
+        .added( fresnelColour )
+        
+        .scaled( sceneSettings.ambientFactor );
 
+        
     // Shadow Casting
 
-    const shadowRay = new maths.Ray3(
-        rayResult.pos
-            .added( rayResult.normal
-                .scaled(0.05)
-        ),
-        globalLight.antiLightDirection 
-    );
+    // Implement a better shadow cast rather than cubic jitter, 
+    // (very expensive) & looks bad at lower values
 
-    const shadowRayResult = traceRay( shadowRay, sphereList )
+    let shadowHits = 0;
+    let samples = sceneSettings.shadowSamples;
+    samples = 1;
 
-    // Chooses either specular or shadow, not both
+    for (let s = 0; s < samples; s++ ){
+
+        let shadowRay = new maths.Ray3(
+            rayResult.pos
+                .added( rayResult.normal
+                    .scaled(0.05)),
+            
+            globalLight.antiLightDirection
+                // .added( new maths.Vector3(
+                //     (Math.random() - 0.5) * jitterScale,
+                //     (Math.random() - 0.5) * jitterScale,
+                //     (Math.random() - 0.5) * jitterScale
+                //     )
+                // ).normalised() 
+        );
+
+        let shadowRayResult = traceRay( shadowRay, sphereList )
+
+        if (shadowRayResult.t > 0){
+            shadowHits += 1
+            // console.log(shadowColour)
+        } 
+    }
+
+    let shadows = 1 - (shadowHits / samples) * sceneSettings.shadowIntensity;
     
-    if (shadowRayResult.t >= 0){
-        colour.scale( 1 / sceneSettings.shadowIntensity );
-    } 
+    // Priorities shadow > specular, so both arent incorrectly applied 
+    if ( shadowHits > 0 ){
+        // console.log(shadowColour)
+        colour.scale( shadows )
+    }
 
     // Only adds specular on the primary / first ray in a recursive chain,
     // otherwise reflections are noticabley brighter than thier surrounding
     else if (isPrimaryRay){
-        colour = colour.added(specular); 
+        colour.add(specular); 
     }
+
 
     return colour
 }
@@ -233,7 +295,6 @@ export function rayColour(
  *  and returns its colour.
  * 
  *  * Colour = Mirror * ( reflectivity ) + albedo * ( 1 - reflectivity ).
- * 
  * 
  *  The function is recursively called when a reflective ray, hits another
  *  reflective surface, upto a max bounces limit set by: 
@@ -254,6 +315,8 @@ export function rayColour(
  * @param {maths.RayResult3} rayResult Result of the previous ray intersect.
  * 
  * @param {maths.RayResult3} camPos Position of the main camera in the scene.
+ * @param {Number} imageWidth Width of the canvas.
+ * @param {Number} imageHeight Height of the canvas.
  * @param {Array<shapes.Sphere>} sphereList List of scene spheres.
  * @param {DirectionalLight} globalLight The global directional light.
  * 
@@ -267,6 +330,8 @@ export function reflectiveColour(
     ray, 
     rayResult,
     camPos,
+    imageWidth,
+    imageHeight,
     sphereList,
     globalLight,
     sceneSettings,
@@ -298,9 +363,9 @@ export function reflectiveColour(
         ray.direction
             .subbed( rayResult.normal
                 .scaled( 2 * rayResult.normal
-                    .dot( ray.direction )
+                    .dot( ray.direction)
                 )
-        )
+            )
 
     )
 
@@ -330,6 +395,8 @@ export function reflectiveColour(
             reflectedRay, 
             reflectedRayResult, 
             camPos,
+            imageWidth,
+            imageHeight,
             sphereList, 
             globalLight,
             sceneSettings,
@@ -342,6 +409,8 @@ export function reflectiveColour(
         const baseColour = rayColour(
             reflectedRay,
             camPos,
+            imageWidth,
+            imageHeight,
             sphereList,
             globalLight,
             sceneSettings,
@@ -373,7 +442,9 @@ export function reflectiveColour(
     //console.log(`Unreflective`)
     return rayColour( 
         reflectedRay, 
-        camPos, 
+        camPos,
+        imageWidth,
+        imageHeight,
         sphereList, 
         globalLight, 
         sceneSettings,

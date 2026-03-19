@@ -203,10 +203,12 @@ const sceneSettings = new renderer.sceneSettings(
     
     1,         // Ambient light factor 
     4,         // Specular Intensity
-    10,        // Shadow Intensity
-    false,      // Gamma Correction
-    50,        // MultiSample AntiAliasing (MSAA) Samples
-    10         // Max Number of Reflection Bounces
+    1,        // Shadow Intensity
+    10,        // Shadow Samples
+    true,      // Gamma Correction
+    25,         // MultiSample AntiAliasing (MSAA) Samples
+    2,         // Max Number of Reflection Bounces
+    30         // Fresnel Power
 )
 
 console.log(
@@ -297,6 +299,8 @@ function startRayTracer(){
                     renderer.rayColour(
                         msaaRay, 
                         camPos,
+                        imageWidth,
+                        imageHeight,
                         spheres,
                         sun,
                         sceneSettings,
@@ -337,9 +341,9 @@ Phong Ambient
     Strength: ${sceneSettings.ambientFactor}
 Phong Diffuse
 Phong Specular
-    Strength: ${sun.specularIntensity}
+    Power: ${sceneSettings.specularPower}
 Shadow Cast
-    Strength: ${sun.shadowIntensity}
+    Intensity: ${sceneSettings.shadowIntensity}
 
 Gamma Correction: ${sceneSettings.doGammaCorrection}
 Multi Sample Anti Aliasing, (MSAA)
@@ -347,6 +351,8 @@ Multi Sample Anti Aliasing, (MSAA)
         
 Recursive Reflection
     Max Bounces: ${sceneSettings.maxReflectionBounces}
+Fresnel Lighting
+    Fresnel Power: ${sceneSettings.fresnelPower}
 `)
 
 }

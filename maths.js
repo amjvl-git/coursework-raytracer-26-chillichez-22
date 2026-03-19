@@ -5,12 +5,10 @@ import * as matrixs from "./maths_dir/matrixs.js"
 import * as rays from "./maths_dir/rays.js";
 import * as vectors from "./maths_dir/vectors.js"
 
-
 // Exports
 export * from "./maths_dir/matrixs.js"
 export * from "./maths_dir/rays.js"
 export * from "./maths_dir/vectors.js"
-
 
 // Functions
 
@@ -22,7 +20,7 @@ export * from "./maths_dir/vectors.js"
  */
 export function stipWToVector3( VectorFour ){
 
-    return new maths.Vector3( VectorFour.x, VectorFour.y, VectorFour.z );
+    return new vectors.Vector3( VectorFour.x, VectorFour.y, VectorFour.z );
 }
 
 /**
@@ -33,5 +31,19 @@ export function stipWToVector3( VectorFour ){
  */
 export function stipZToVector2( VectorThree ){
 
-    return new maths.Vector2( VectorThree.x, VectorThree.y );
+    return new vectors.Vector2( VectorThree.x, VectorThree.y );
 }
+
+/**
+ * Fills a vector3 with the float varibale,
+ * where each: x, y, z = float.
+ * 
+ * @param {Number} value Float to set, x, y, z
+ * @returns {vectors.Vector3} Vector filled with float
+ */
+export function floatFillV3( value ){
+
+    let vector = new vectors.Vector3( value, value, value )
+    return vector
+}
+

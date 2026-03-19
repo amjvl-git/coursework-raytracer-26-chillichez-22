@@ -24,8 +24,9 @@
                 <!-- Scene Selection & Settings -->
 
                 <select id = "sceneSelect">
-                    <option>Phong Lighting</option>
-                    <option>Reflection Lighting</option>
+                    <option>Choose Scene</option>
+                    <option>Phong Demo</option>
+                    <option>Reflection Demo</option>
                 </select>
 
                 <label><input type="checkbox"> Gamma Correction </label>
@@ -38,15 +39,20 @@
 
                 <!-- Divide value by 10 --> 
                 <div id = "specularSlider", class="slideContainer">
-                    <a>Specular Intensity</a>
-                    <input type="range" min="0" max="100" value="40" class="slider" id="specularIntensity">
+                    <a>Specular Power</a>
+                    <input type="range" min="0" max="100" value="40" class="slider" id="specularPower">
                 </div>
 
-                <div id = "shadowSlider", class="slideContainer">
+                <!-- Divide value by 100 --> 
+                <div id = "shadowIntensitySlider", class="slideContainer">
                     <a>Shadow Intensity</a>
                     <input type="range" min="0" max="100" value="40" class="slider" id="shadowIntensity">
                 </div>
 
+                <div id = "shadowSharpnessSlider", class="slideContainer">
+                    <a>Shadow Sharpness</a>
+                    <input type="range" min="0" max="100" value="0" class="slider" id="shadowSharpness">
+                </div>
 
                 <div id = "msaaSlider", class="slideContainer">
                     <a>MSAA Samples</a>
@@ -55,7 +61,12 @@
 
                 <div id = "bounceSlider", class="slideContainer">
                     <a>Max Reflection Bounces</a>
-                    <input type="range" min="0" max="50" value="10" class="slider" id="reflectionBounces">
+                    <input type="range" min="0" max="10" value="5" class="slider" id="reflectionBounces">
+                </div>
+
+                <div id = "fresnelSlider", class="slideContainer">
+                    <a>Fresnel Power</a>
+                    <input type="range" min="0" max="30" value="50" class="slider" id="fresnelPower">
                 </div>
                 
                 <p></p> <!-- "Line Break" -->
@@ -87,6 +98,11 @@
                 <div id = "reflectivitySlider", class="slideContainer">
                     <a>Sphere Reflectivity</a>
                     <input type="range" min="0" max="100" value="50" class="slider" id="sphereReflectivity">
+                </div>
+
+                <div id = "sphereColourPicker", class="colourPicker">
+                    <a>Sphere Colour</a>
+                    <input type="color" id = sphereColor>
                 </div>
 
         
