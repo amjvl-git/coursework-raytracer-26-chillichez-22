@@ -69,11 +69,11 @@
     {
         "ambientFactor": 1,
         "specularIntensity": 4,
-        "shadowIntensity": 1,
+        "shadowIntensity": 0.9,
         "doGammaCorrection": true,
-        "msaaSampleCount": 25,
+        "msaaSampleCount": 20,
         "maxReflectionBounces": 5,
-        "fresnelPower": 20
+        "fresnelPower": 30
     }
 
 }

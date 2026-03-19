@@ -124,7 +124,7 @@ export function traceRay(ray, sphereList){
  * @param {maths.Vector3} camPos Position of the main camera in the scene.
  * @param {Array<shapes.Sphere>} sphereList List of spheres.
  * @param {DirectionalLight} globalLight The global directional light.
- * @param {sceneSettings} sceneSettings Additional settings for the scene.
+ * @param {SceneSettings} sceneSettings Additional settings for the scene.
  * @param {boolean} isPrimaryRay  If the ray is the first to be fired.
  * 
  * @returns {maths.Vector3} Pixel Colour, clamped from [0 min -> 1 max].
@@ -292,7 +292,7 @@ export function rayColour(
  * @param {Array<shapes.Sphere>} sphereList List of scene spheres.
  * @param {DirectionalLight} globalLight The global directional light.
  * 
- * @param {sceneSettings} sceneSettings Additional settings for the scene.
+ * @param {SceneSettings} sceneSettings Additional settings for the scene.
  * @param {Number} bounces Number of bounces the ray has taken.
  * 
  * @returns {maths.Vector3} Pixel Colour, clamped from [0 min -> 1 max].
@@ -386,8 +386,7 @@ export function reflectiveColour(
             sphereList,
             globalLight,
             sceneSettings,
-            false // hmmmmmmm idk if we should set this to T/F, 
-            // since the reflections wont show the specular
+            false // Not a primary ray, dont iclude specular
         )
 
         // Applies reflectivity to the base colour, if the material is 
@@ -429,8 +428,8 @@ export function reflectiveColour(
  * Creates the background gradient by interpolating between blue and
  * white colours.
  * 
- * @param {maths.Ray3} ray 
- * @returns {maths.Vector3}
+ * @param {maths.Ray3} ray Incident ray
+ * @returns {maths.Vector3} Colour for the background
  */
 export function backgroundColour(ray){
 

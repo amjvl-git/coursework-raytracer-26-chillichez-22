@@ -14,7 +14,7 @@
 
     <body>
 
-        <h1>Ray Tracer</h1>
+        <h1>JS Ray Tracer</h1>
 
         <div id = "container">
 
@@ -67,28 +67,24 @@
                 <a></a>
                 <b>Lighting</b>
 
+                <!-- Divide by 100 -->
                 <div id="lightDir">
                     <a>Lighting Direction</a>
                     <div id = "lightSliderX", class="slideContainer">
                     <a>X</a>
-                    <input type="range" min="-5" max="5" value="0" class="slider" id="lightX">
+                    <input type="range" min="-200" max="200" value="0" class="slider" id="lightX">
                     </div>
 
                     <div id = "lightSliderY", class="slideContainer">
                     <a>Y</a>
-                    <input type="range" min="-5" max="5" value="0" class="slider" id="lightY">
+                    <input type="range" min="-200" max="200" value="0" class="slider" id="lightY">
                     </div>
 
                     <div id = "lightSliderZ", class="slideContainer">
                     <a>Z</a>
-                    <input type="range" min="-5" max="5" value="0" class="slider" id="lightZ">
+                    <input type="range" min="-200" max="200" value="0" class="slider" id="lightZ">
                     </div>
                 </div> 
-
-                <div id = "lightColourPicker", class="colourPicker">
-                    <a>Light Colour</a>
-                    <input type="color" id = lightColour>
-                </div>
 
                
             </div>
@@ -151,8 +147,6 @@
 
         </div>
 
-       
-        
-
     </body>
+
 </html>

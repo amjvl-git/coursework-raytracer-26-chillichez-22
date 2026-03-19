@@ -17,12 +17,12 @@ It performs:
     - Hard Shading
     - MultiSample Anti-Alisaing 
 
-    - Coloured Lighting 
     - Bounce Reflection Lighting
     - Simple Fresnel Lighting (Illumination)
 
-    - Customisablity for Spheres
-    - Customisablity for Scene
+    - Customisability for Lighting
+    - Customisability for Spheres
+    - Customisability for Scene
 
 
 To Run:
@@ -48,7 +48,7 @@ Basic TroubleShooting:
 
     - The page is uresponsive: Means the ray-tracer is still loading.
 
-    - The screen shows black: The ray-tracer is still loading. ( If no error is shown in the console)
+    - The screen shows black: The ray-tracer is still loading. ( If no error is shown in the console) 
 
     - The screen turns black after moving the window/tab: Reload the scene.
 
@@ -56,7 +56,7 @@ Basic TroubleShooting:
 
     - The spheres show bright white, and the screen is blown out: Means the "Fresnel Power" or "Specular Intensity" slider is too low, increase the lowest one.
 
-    - The reflective sphere are black, with shading: Means the "Max Reflection Bounces" are too low, increase it.
+    - The reflective sphere are black or very dark: Means the "Max Reflection Bounces" are too low, increase it.
 
     - The spheres are very dark: Means the "Ambient Light" is to low, increase it.
 

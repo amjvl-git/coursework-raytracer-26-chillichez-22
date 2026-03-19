@@ -7,21 +7,19 @@ import { DirectionalLight } from "./lights.js";
 export const canvas = document.getElementById("mainCanvas");
 export const ctx = canvas.getContext("2d");
 
-// Resive anyway to make sure the canvas is the correct size
-resize();
-
-let imageWidth = 900;
-let imageHeight = 500;
-let aspectRatio = imageHeight/imageWidth;
-
-canvas.height = imageHeight;
-canvas.width = imageWidth;
+const container = document.getElementById("container");
+const controls = document.getElementById("controls");
+const world = document.getElementById("world"); 
 
 // Veiwport & Camera Variables
 
-const veiwportWidth = 2;
-const veiwportHeight = veiwportWidth * aspectRatio;
-const focalLength = 1.0;
+let imageWidth = 1;
+let imageHeight = 1;
+let aspectRatio = 1;
+
+let veiwportWidth = 2;
+let veiwportHeight = veiwportWidth * aspectRatio;
+let focalLength = 1.0;
 
 let camPos = new maths.Vector3( 0, 0, 0);
 let horizontal = new maths.Vector3( veiwportWidth, 0, 0 );
@@ -54,54 +52,11 @@ let spheres = null;
 // Global illumination & Settings
 
 let sun = new DirectionalLight( 
-    new maths.Vector3(0,0,0), new maths.Vector3(0,0,0));
+    new maths.Vector3(0,0,0), 
+    new maths.Vector3(0,0,0)
+);
 
 let sceneSettings = new renderer.SceneSettings(0,0,0,0,0,0,0);
-
-/*
-console.log(
-`
-Below are the average loads times i got on a: 2.9Ghz Cpu 16Gb Ram,
-load times may vary.
-Above MSSA 100, load times are 30s<, with little difference.
-Bounces at 10 was more than enough
-
-All Tests Done At Width: 900, Height: 500
----------------
-MSSA: 1
-Bounces: 10
-Load Time: ~1.1s
-
----------------
-MSSA: 25
-Bounces: 10
-Load Time: ~7.8s
-
-
----------------
-MSSA: 50
-Bounces: 10
-Load Time: ~14.1s
-
----------------
-MSAA: 75
-Bounces: 10
-Load Time: ~19.6s
-
----------------
-MSAA: 100
-Bounces: 10
-Load Time: ~ 27.4s 
-
---------------- 
-Super Mega Ultra Test:
-FUllSCREEN: 1700x1000p
-MSAA: 100
-Bounces: 10
-Load Time: ~96s 
-`)
-*/
-
 
 /**
  * Main JS Ray Tracer function
@@ -241,18 +196,53 @@ function hexToRgb(hexcode) {
     );
 }
 
-
-
 // Listeners
 
+/**
+ * Resizes the canvas screen.
+ */
 function resize(){
 
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+    const containerRect = container.getBoundingClientRect();
+    const controlsRect = controls.getBoundingClientRect();
+    const worldRect = world.getBoundingClientRect();
+
+    const width = Math.floor(
+        containerRect.width - controlsRect.width - worldRect.width
+    );
+
+    const height = Math.floor(containerRect.height);
+
+    canvas.width = width;
+    canvas.height = height;
+
+    imageWidth = canvas.width;
+    imageHeight = canvas.height;
+    aspectRatio = imageWidth/imageHeight;
+
+    console.log("Width: ", imageWidth, "Height", imageHeight )
+
+    resizeCamera();
+}
+
+/**
+ * Updates the camera.
+ */
+function resizeCamera() {
+
+    const viewportWidth = 2;
+    const viewportHeight = viewportWidth / aspectRatio;
+
+    horizontal = new maths.Vector3(viewportWidth, 0, 0);
+    vertical = new maths.Vector3(0, viewportHeight, 0);
+
+    bottomLeftNear = camPos
+        .subbed(horizontal.scaled(0.5))
+        .subbed(vertical.scaled(0.5))
+        .subbed(new maths.Vector3(0, 0, focalLength));
 }
 
 window.addEventListener('resize', resize);
-
 
 // Scene Settings
 let sceneSelect = document.getElementById('sceneSelect');
@@ -269,11 +259,9 @@ let bounceSlider = document.getElementById('reflectionBounces');
 let fresnelSlider = document.getElementById('fresnelPower');
 
 // Lighting
-
 let lightSliderX = document.getElementById("lightX")
 let lightSliderY = document.getElementById("lightY")
 let lightSliderZ = document.getElementById("lightZ") 
-let lightColourPicker = document.getElementById('lightColour');
 
 // Sphere Selection
 let sphereSliderX = document.getElementById("spherePosX")
@@ -326,8 +314,6 @@ function changeScene(){
         .subbed(new maths.Vector3(0, 0, focalLength)
     );
 
-    console.log("cam", camPos)
-
     let sceneSpheres = sceneData["Spheres"];
     spheres = new Array( );
 
@@ -352,7 +338,6 @@ function changeScene(){
 
         spheres.push( newSphere );
     }
-    console.log("Spheres", spheres );
 
     // Changes the sun, global lighting on the scene
     sun.setLightDirection( new maths.Vector3(
@@ -366,7 +351,6 @@ function changeScene(){
         sceneData["Light"]["lightColour"][1],
         sceneData["Light"]["lightColour"][2]
     )
-    console.log("light", sun)
 
     // Changes the scene settings 
     const settings = sceneData["Settings"];
@@ -379,13 +363,9 @@ function changeScene(){
     sceneSettings.maxReflectionBounces = settings["maxReflectionBounces"];
     sceneSettings.fresnelPower = settings["fresnelPower"];
 
-    lightSliderX.value = sun.lightDirection.x
-    lightSliderY.value = sun.lightDirection.y
-    lightSliderZ.value = sun.lightDirection.z
-    lightColourPicker.value = rgbToHex( sun.lightColour.scaled(255) );
-
-    console.log("settings", sceneSettings)
-    console.log("Scene changed to: ", sceneIndex)
+    lightSliderX.value = sun.lightDirection.x * 100;
+    lightSliderY.value = sun.lightDirection.y * 100;
+    lightSliderZ.value = sun.lightDirection.z * 100;
 
     // Updates the scene sliders
     gammaCheckbox.checked = sceneSettings.doGammaCorrection;
@@ -396,7 +376,13 @@ function changeScene(){
     bounceSlider.value = sceneSettings.maxReflectionBounces;
     fresnelSlider.value = sceneSettings.fresnelPower;
 
-    changeSphere()
+    changeSphere();
+    
+    console.log("Cam", camPos)
+    console.log("Light", sun)
+    console.log("Spheres", spheres );
+    console.log("Settings", sceneSettings);
+    console.log("Scene changed to: ", sceneIndex);
 }
 
 /**
@@ -427,10 +413,9 @@ function changeSphere(){
     reflectivitySlider.value = currentSphere.reflectivity * 100;  
     sphereColourPicker.value = rgbToHex( currentSphere.colour.scaled(255) );
     
-    console.log("sphere currently selected: ", sphereIndex)
+    console.log("Sphere currently selected: ", sphereIndex)
 
 }
-
 
 // Settings
 
@@ -468,13 +453,13 @@ fresnelSlider.addEventListener('change', () => {
     sceneSettings.fresnelPower = parseInt(fresnelSlider.value);
 })
 
-// Lighting
 
+// Lighting
 
 lightSliderX.addEventListener('change', () => {
 
     sun.setLightDirection( new maths.Vector3(
-        parseInt(lightX.value), 
+        parseInt(lightX.value) / 100, 
         sun.lightDirection.y, 
         sun.lightDirection.z
         )
@@ -484,7 +469,7 @@ lightSliderY.addEventListener('change', () => {
 
     sun.setLightDirection( new maths.Vector3(
         sun.lightDirection.x,
-        parseInt(lightY.value), 
+        parseInt(lightY.value) / 100, 
         sun.lightDirection.z
         )
     )
@@ -494,19 +479,11 @@ lightSliderZ.addEventListener('change', () => {
     sun.setLightDirection( new maths.Vector3(
         sun.lightDirection.x,  
         sun.lightDirection.y, 
-        parseInt(lightZ.value)
+        parseInt(lightZ.value) / 100
         )
     )
 })
 
-lightColourPicker.addEventListener('change', () => {
-
-    console.log("Colour", hexToRgb(lightColourPicker.value).scaled( 1/255) )
-
-    spheres[ sphereIndex ].colour = 
-        hexToRgb( lightColourPicker.value )
-            .scaled( 1/255);
-})
 
 // Spheres
 
@@ -551,5 +528,6 @@ sphereColourPicker.addEventListener('change', () => {
 
 // Initial call
 
+resize()
 changeScene()
 startRayTracer()

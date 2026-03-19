@@ -1,4 +1,4 @@
-body {
+html, body {
     margin: 4;
     background: #111;
     color: rgb(255, 255, 255);
@@ -11,60 +11,34 @@ body {
 #container{
 
     display: flex;
-    height: 100vh;
-}
-
-#controls{
-
-    width: 250px;
-    background: #222;
-    color: white;
-    padding: 20px;
-
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    margin: 4px;
-}
-
-#sceneReload{
-    height: 25px;
-}
-
-#sceneSelect{
-    height: 25px;
-}
-
-#world{
-
-    width: 250px;
-    background: #222;
-    color: white;
-    padding: 20px;
-
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    margin: 4px;
-}
-
-#sphereSelect{
-    height: 25px;
-}
-
-#slideContainer{
-    /* Change slider a bit*/
-}
-
-#colourPicker{
-    width: 250px;
+    height: 100%;
 }
 
 #mainCanvas{
 
     flex: 1;
+    height: 100%;
     background: black;
     display: block;
 }
 
+#controls, #world{
 
+    width: 250px;
+    background: #222;
+    color: white;
+    padding: 20px;
+
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 4px;
+}
+
+#sceneReload, #sceneSelect, #sphereSelect{
+    height: 25px;
+}
+
+#colourPicker{
+    width: 250px;
+}
