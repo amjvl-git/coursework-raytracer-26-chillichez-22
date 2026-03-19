@@ -30,4 +30,17 @@ export class DirectionalLight{
         this.lightColour = lightColour;
 
     }
+
+    /**
+     * Updates the light direction value, along with the anti-light 
+     * direction value
+     * 
+     * @param {maths.Vector3} lightDir Nww direction for the light 
+     */
+    setLightDirection( lightDir ){
+
+        this.lightDirection = lightDir.normalised();
+        this.antiLightDirection = lightDir.normalised().scaled(-1);
+    }
+    
 }

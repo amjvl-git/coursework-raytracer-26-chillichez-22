@@ -9,7 +9,6 @@
         <link rel="stylesheet" href="style.css">
 
         <script type = "module" src = "main.js" defer></script>
-        <script type = "module" src = "inputs.js" defer></script>
         
     </head>
 
@@ -22,14 +21,14 @@
             <div id = "controls">
 
                 <!-- Scene Selection & Settings -->
+                <input type = "button" class = "notSliders" id = "sceneReload" value = "Reload Scene">
 
-                <select id = "sceneSelect">
-                    <option>Choose Scene</option>
-                    <option>Phong Demo</option>
-                    <option>Reflection Demo</option>
+                <select class = "notSliders" id = "sceneSelect" >
+                    <option value = "0">Reflection Demo</option>
+                    <option value = "1">Base Phong Demo</option>
                 </select>
 
-                <label><input type="checkbox"> Gamma Correction </label>
+                <label><input type="checkbox" class = "checkbox" id = "gammaCheckbox"> Gamma Correction </label>
 
                 <!-- Divide value by 100 --> 
                 <div id = "ambientSlider", class="slideContainer">
@@ -49,41 +48,54 @@
                     <input type="range" min="0" max="100" value="40" class="slider" id="shadowIntensity">
                 </div>
 
-                <div id = "shadowSharpnessSlider", class="slideContainer">
-                    <a>Shadow Sharpness</a>
-                    <input type="range" min="0" max="100" value="0" class="slider" id="shadowSharpness">
-                </div>
-
                 <div id = "msaaSlider", class="slideContainer">
                     <a>MSAA Samples</a>
-                    <input type="range" min="0" max="100" value="2" class="slider" id="msaaSamples">
+                    <input type="range" min="1" max="100" value="2" class="slider" id="msaaSamples">
                 </div>
 
                 <div id = "bounceSlider", class="slideContainer">
                     <a>Max Reflection Bounces</a>
-                    <input type="range" min="0" max="10" value="5" class="slider" id="reflectionBounces">
+                    <input type="range" min="1" max="10" value="5" class="slider" id="reflectionBounces">
                 </div>
 
                 <div id = "fresnelSlider", class="slideContainer">
                     <a>Fresnel Power</a>
-                    <input type="range" min="0" max="30" value="50" class="slider" id="fresnelPower">
+                    <input type="range" min="0" max="30" value="15" class="slider" id="fresnelPower">
                 </div>
                 
-                <p></p> <!-- "Line Break" -->
+               
+            </div>
+            <div id = "world">    
 
+                <a>Spheres</a> <!-- "Line Break" -->
                 <!-- Sphere Selection -->
 
-                <select id = "sphereSelect">
-                    <option>Phong Lighting</option>
-                    <option>Reflection Lighting</option>
+                <select class = "notSliders" id = "sphereSelect">
+                    <option value="0">Sphere One</option>
+                    <option value="1">Sphere Two</option>
+                    <option value="2">Sphere Three</option>
+                    <option value="3">Sphere Four</option>
+                    <option value="4">Sphere Five</option>
+                    <option value="5">Sphere Six </option>
+
                 </select>
 
                 <div id="spherePos">
+                    <a>Sphere Position</a>
+                    <div id = "sphereX", class="slideContainer">
+                    <a>X</a>
+                    <input type="range" min="-5" max="5" value="0" class="slider" id="spherePosX">
+                    </div>
 
-                    <!-- X -->
-                    <!-- Y -->
-                    <!-- Z -->
+                    <div id = "sphereY", class="slideContainer">
+                    <a>Y</a>
+                    <input type="range" min="-5" max="5" value="0" class="slider" id="spherePosY">
+                    </div>
 
+                    <div id = "sphereZ", class="slideContainer">
+                    <a>Z</a>
+                    <input type="range" min="-5" max="5" value="0" class="slider" id="spherePosZ">
+                    </div>
                 </div> 
 
                 <!-- Colour -->
@@ -102,7 +114,7 @@
 
                 <div id = "sphereColourPicker", class="colourPicker">
                     <a>Sphere Colour</a>
-                    <input type="color" id = sphereColor>
+                    <input type="color" id = sphereColour>
                 </div>
 
         

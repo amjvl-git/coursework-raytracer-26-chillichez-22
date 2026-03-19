@@ -38,179 +38,27 @@ let bottomLeftNear = camPos
 
 // Scene Objects
 
-const spheres = new Array(
+let phongSceneData = await 
+    fetch("./preset_scenes/base_scene.json")
+        .then(d => d.json());
 
-    new shapes.Sphere(  // Red - Central
+let reflectionSceneData = await 
+    fetch("./preset_scenes/reflection_scene.json")
+        .then(d => d.json());
 
-        new maths.Vector3(  // Centre
-            0, 
-            0, 
-            -1 
-        ), 
+let sceneIndex = 0;
+let sphereIndex = 0;
 
-        0.3,  // Radius
-        0,    // Index
-
-        new maths.Vector3( // Colour
-            1,
-            0, 
-            0 
-        ),
-
-        1  // Reflectivity
-    ),
-
-    new shapes.Sphere( // Pink - Behind
-
-        new maths.Vector3( // Centre
-            0.2, 
-            0.2, 
-            0.1 
-        ),
-
-        0.15,  // Radius
-        1,     // Index
-
-        new maths.Vector3( // Colour
-            1, 
-            0, 
-            1 
-        ), 
- 
-        0    // Reflectivity
-    ),
-
-    new shapes.Sphere( // Blue - Top
-
-        new maths.Vector3( // Centre
-            0, 
-            0.25, 
-            -0.75 
-        ),
-
-        0.15,  // Radius
-        2,     // Index
-
-        new maths.Vector3( // Colour
-            0, 
-            0, 
-            1 
-        ), 
- 
-        0  // Reflectivity
-    ),
-    
-    new shapes.Sphere( // Green - Floor
-
-        new maths.Vector3( // Centre
-            0, 
-            -100.5, 
-            -1 
-        ),
-
-        100,  // Radius
-        3,    // Index
-
-        new maths.Vector3( // Colour
-            0, 
-            1, 
-            0 
-        ),
-        
-        0    // Reflectivity
-    ),
-
-    new shapes.Sphere( // Yellow - Right
-
-        new maths.Vector3( // Centre
-            -0.3, 
-            0, 
-            -0.4
-        ),
-
-        0.15,  // Radius
-        4,     // Index
-
-        new maths.Vector3( // Colour
-            1, 
-            1, 
-            0 
-        ), 
- 
-        1    // Reflectivity
-    ),
-
-    new shapes.Sphere( // Teal - Right
-
-        new maths.Vector3( // Centre
-            0.3, 
-            0, 
-            -0.4
-        ),
-
-        0.15,  // Radius
-        5,     // Index
-
-        new maths.Vector3( // Colour
-            0, 
-            1, 
-            1 
-        ), 
- 
-        0.5    // Reflectivity
-    ),
-
-
-);
+let spheres = null;
 
 // Global illumination & Settings
 
+let sun = new DirectionalLight( 
+    new maths.Vector3(0,0,0), new maths.Vector3(0,0,0));
 
-/* Directly down
+let sceneSettings = new renderer.SceneSettings(0,0,0,0,0,0,0);
 
-const sun = new DirectionalLight(
-
-    new maths.Vector3( // Direction
-        0, 
-        -1,
-        0
-    ).normalised(),
-
-    new maths.Vector3( // Colour
-        1,
-        1,
-        1
-    ).normalised(),
-) */
-
-
-const sun = new DirectionalLight( 
-
-    new maths.Vector3( // Direction
-        1.1, 
-        -1.3,
-        -1.5 
-    ).normalised(),
-    
-    new maths.Vector3( // Colour
-        1,
-        1,
-        1
-    ).normalised(),
-);
-
-const sceneSettings = new renderer.sceneSettings( 
-    
-    1,         // Ambient light factor 
-    4,         // Specular Intensity
-    1,        // Shadow Intensity
-    10,        // Shadow Samples
-    true,      // Gamma Correction
-    25,         // MultiSample AntiAliasing (MSAA) Samples
-    2,         // Max Number of Reflection Bounces
-    30         // Fresnel Power
-)
-
+/*
 console.log(
 `
 Below are the average loads times i got on a: 2.9Ghz Cpu 16Gb Ram,
@@ -252,6 +100,8 @@ MSAA: 100
 Bounces: 10
 Load Time: ~96s 
 `)
+*/
+
 
 /**
  * Main JS Ray Tracer function
@@ -281,11 +131,11 @@ function startRayTracer(){
                 
                 // Move the position of the pixel, and not the direction
                 const msaaPos = bottomLeftNear
-                        .added( horizontal.scaled( 
-                            u + (Math.random() - 0.5) / imageWidth) )
+                    .added( horizontal.scaled( 
+                        u + (Math.random() - 0.5) / imageWidth) )
 
-                        .added( vertical.scaled( 
-                            v + (Math.random() - 0.5) / imageHeight) )
+                    .added( vertical.scaled( 
+                        v + (Math.random() - 0.5) / imageHeight) )
 
                 const msaaDir = msaaPos.subbed( camPos );
                 
@@ -326,12 +176,15 @@ function startRayTracer(){
 
     const EndTime = performance.now();
 
-    console.log(`
+console.log(`
 Finished Placing Pixels
 -----------------------
 Time: ${(EndTime-StartTime) / 1000}s
 
 Pixels: ${imageWidth * imageHeight} 
+Rays: ${imageWidth 
+        * imageHeight 
+        * sceneSettings.msaaSampleCount} Rough estimate
 Width: ${imageWidth}
 Height: ${imageHeight}
 -----------------------
@@ -354,10 +207,41 @@ Recursive Reflection
 Fresnel Lighting
     Fresnel Power: ${sceneSettings.fresnelPower}
 `)
-
 }
 
-startRayTracer();
+
+/**
+ * Converts from hex colour to RGB, by doing bit masking to extract the,
+ * red, green, and blue values, and combine them into a hex value.
+ * 
+ * @param {maths.Vector3} colour RGB Colour as a vector3 
+ * @returns {String} Hexcode for the colour
+ */
+function rgbToHex( colour ) {
+
+    return "#" + (1 << 24 | colour.x << 16 | colour.y << 8 | colour.z )
+        .toString(16)
+            .slice(1);
+}
+
+/**
+ * A fast hex to rgb that parses the int to convert the number to,
+ * its corresponding letter [A-F], then combines into a vector3 variable.
+ * 
+ * @param {String} hex Hexcode for the colour
+ * @returns {maths.Vector3} RGB colour as a vector 3
+ */
+function hexToRgb(hexcode) {
+    const num = parseInt(hexcode.slice(1), 16);
+
+    return new maths.Vector3(
+        (num >> 16) & 255,
+        (num >> 8) & 255,
+        num & 255
+    );
+}
+
+
 
 // Listeners
 
@@ -369,3 +253,250 @@ function resize(){
 
 window.addEventListener('resize', resize);
 
+
+// Scene Settings
+
+let sceneSelect = document.getElementById('sceneSelect');
+let sceneReload = document.getElementById('sceneReload');
+
+let ambientSlider = document.getElementById('ambientFactor');
+let gammaCheckbox = document.getElementById('gammaCheckbox');
+let specularSlider = document.getElementById('specularPower');
+
+let shadowIntensitySlider = document.getElementById('shadowIntensity');
+let msaaSlider = document.getElementById('msaaSamples');
+
+let bounceSlider = document.getElementById('reflectionBounces');
+let fresnelSlider = document.getElementById('fresnelPower');
+
+// Sphere Selection
+let sphereSliderX = document.getElementById("spherePosX")
+let sphereSliderY = document.getElementById("spherePosY")
+let sphereSliderZ = document.getElementById("spherePosZ")
+
+let radiusSlider = document.getElementById('sphereRadius');
+let reflectivitySlider = document.getElementById('sphereReflectivity');
+let colourPicker = document.getElementById('sphereColour');
+
+
+/**
+ * Updates the scene settings, spheres, campos, lighting for the changed scene
+ * using the corresponding JSON file, and sets the sliders, and buttons 
+ * to thier correct values
+ */
+function changeScene(){
+
+    let sceneData = null
+
+    // Base Phong Demo
+    if ( sceneIndex === 1 ){
+
+        sceneData = phongSceneData;
+    }
+
+    // Reflection Scene Demo
+    else if( sceneIndex === 0 ){
+
+        sceneData = reflectionSceneData;
+    } 
+
+    // Failed to load
+    else{
+
+        console.log("Scene index: ", sceneIndex)
+        throw new Error("Scene JSON failed to load")
+    }
+
+    // Replaces camera and BLN co-ord
+    camPos = new maths.Vector3(
+        sceneData["CamPos"][0],
+        sceneData["CamPos"][1],
+        sceneData["CamPos"][2]
+    );
+
+    bottomLeftNear = camPos
+        .subbed(horizontal.scaled(0.5))
+        .subbed(vertical.scaled(0.5))
+        .subbed(new maths.Vector3(0, 0, focalLength)
+    );
+
+    console.log("cam", camPos)
+
+    let sceneSpheres = sceneData["Spheres"];
+    spheres = new Array( );
+
+    // Creates each sphere 
+    for (let s = 0; s < sceneSpheres.length; s++){
+
+        let newSphere = new shapes.Sphere(
+            new maths.Vector3(
+                sceneSpheres[s]["centre"][0],
+                sceneSpheres[s]["centre"][1],
+                sceneSpheres[s]["centre"][2]
+            ),
+            sceneSpheres[s]["radius"],
+            s,
+            new maths.Vector3(
+                sceneSpheres[s]["colour"][0],
+                sceneSpheres[s]["colour"][1],
+                sceneSpheres[s]["colour"][2]
+            ),
+            sceneSpheres[s]["reflectivity"]
+        );
+
+        spheres.push( newSphere );
+    }
+    console.log("Spheres", spheres );
+
+    // Changes the sun, global lighting on the scene
+    sun.setLightDirection( new maths.Vector3(
+        sceneData["Light"]["lightDirection"][0], 
+        sceneData["Light"]["lightDirection"][1], 
+        sceneData["Light"]["lightDirection"][2] 
+    ) );
+
+    sun.lightColour = new maths.Vector3(
+        sceneData["Light"]["lightColour"][0],
+        sceneData["Light"]["lightColour"][1],
+        sceneData["Light"]["lightColour"][2]
+    )
+    console.log("light", sun)
+
+    // Changes the scene settings 
+    const settings = sceneData["Settings"];
+
+    sceneSettings.ambientFactor = settings["ambientFactor"];
+    sceneSettings.specularPower = settings["specularIntensity"];
+    sceneSettings.shadowIntensity = settings["shadowIntensity"];
+    sceneSettings.doGammaCorrection = (settings["doGammaCorrection"]);
+    sceneSettings.msaaSampleCount = settings["msaaSampleCount"];
+    sceneSettings.maxReflectionBounces = settings["maxReflectionBounces"];
+    sceneSettings.fresnelPower = settings["fresnelPower"];
+
+    console.log("settings", sceneSettings)
+    console.log("Scene changed to: ", sceneIndex)
+
+    // Updates the scene sliders
+    gammaCheckbox.checked = sceneSettings.doGammaCorrection;
+    ambientSlider.value = sceneSettings.ambientFactor * 100;
+    specularSlider.value = sceneSettings.specularPower * 10; 
+    shadowIntensitySlider.value = sceneSettings.shadowIntensity * 100; 
+    msaaSlider.value = sceneSettings.msaaSampleCount;
+    bounceSlider.value = sceneSettings.maxReflectionBounces;
+    fresnelSlider.value = sceneSettings.fresnelPower;
+
+    changeSphere()
+}
+
+/**
+ * Updates the sphere's settings, sliders, buttons, and colour
+ */
+function changeSphere(){
+
+    let currentSphere = spheres[ sphereIndex ];
+
+    // Sphere doesnt exist, bug when selecting sphere 4-6 in base model
+    if ( sphereIndex >= spheres.length){
+        console.log(
+            `Cant choose that sphere right now, 
+            sphere settings will NOT update. Reverting to 1st Sphere`)
+        
+        sphereIndex = 0;
+
+        sphereSelect.value = `${sphereIndex}`
+        changeSphere()
+        return;
+    }
+
+    sphereSliderX.value = currentSphere.centre.x
+    sphereSliderY.value = currentSphere.centre.y
+    sphereSliderZ.value = currentSphere.centre.z
+
+    radiusSlider.value = currentSphere.radius * 100;
+    reflectivitySlider.value = currentSphere.reflectivity * 100;  
+    colourPicker.value = rgbToHex( currentSphere.colour.scaled(255) );
+    
+    console.log("sphere currently selected: ", sphereIndex)
+
+}
+
+
+sceneReload.addEventListener('click', () =>{
+    startRayTracer();
+})
+
+sceneSelect.addEventListener('change', () =>{
+    sceneIndex = parseInt(sceneSelect.value);
+
+    changeScene();
+})
+
+gammaCheckbox.addEventListener('click', () => {
+    sceneSettings.doGammaCorrection = gammaCheckbox.checked
+});
+
+ambientSlider.addEventListener('change', () =>{
+    sceneSettings.ambientFactor = parseFloat(ambientSlider.value / 100);
+})
+
+specularSlider.addEventListener('change', () => {
+    sceneSettings.specularPower = parseFloat(specularSlider.value / 10);
+})
+shadowIntensitySlider.addEventListener('change', () => {
+    sceneSettings.shadowIntensity = parseFloat(shadowIntensitySlider.value / 100);
+})
+msaaSlider.addEventListener('change', () => {
+    sceneSettings.msaaSampleCount = parseInt(msaaSlider.value);
+})
+bounceSlider.addEventListener('change', () => {
+    sceneSettings.maxReflectionBounces = parseInt(bounceSlider.value);
+})
+fresnelSlider.addEventListener('change', () => {
+    sceneSettings.fresnelPower = parseInt(fresnelSlider.value);
+})
+
+// Spheres
+
+sphereSelect.addEventListener('change', () =>{
+    sphereIndex = sphereSelect.value;
+
+    changeSphere()
+})
+
+
+sphereSliderX.addEventListener('change', () => {
+
+    spheres[ sphereIndex ].centre.x = parseInt(sphereSliderX.value);
+})
+sphereSliderY.addEventListener('change', () => {
+
+    spheres[ sphereIndex ].centre.y = parseInt(sphereSliderY.value);
+})
+sphereSliderZ.addEventListener('change', () => {
+
+    spheres[ sphereIndex ].centre.z = parseInt(sphereSliderZ.value);
+})
+
+radiusSlider.addEventListener('change', () => {
+    spheres[ sphereIndex ].radius = parseFloat(radiusSlider.value / 100);
+})
+
+reflectivitySlider.addEventListener('change', () => {
+    spheres[ sphereIndex ].reflectivity = 
+        parseFloat(reflectivitySlider.value / 100);
+})
+
+colourPicker.addEventListener('change', () => {
+
+    console.log("Colour", hexToRgb(colourPicker.value).scaled( 1/255) )
+
+    spheres[ sphereIndex ].colour = 
+        hexToRgb( colourPicker.value )
+            .scaled( 1/255);
+})
+
+
+// Initial call
+
+changeScene()
+startRayTracer()

@@ -8,7 +8,7 @@ import { DirectionalLight } from "./lights.js";
  * Class that holds additional settings for the render
  * and ray color functions
  */
-export class sceneSettings{
+export class SceneSettings{
 
     /**
      * Global settings fot the scene.
@@ -19,7 +19,6 @@ export class sceneSettings{
      * 
      * @param {Number} shadowIntensity Intensity of apllied shadows. 
      * (Higher = Deeper Shadows).
-     * @param {Number} shadowSamples Sharpness of the Shadows.
      * 
      * @param {boolean} doGammaCorrection Should gamma correction be apllied.
      * @param {Number} msaaSampleCount Number of random samples to use for
@@ -34,7 +33,6 @@ export class sceneSettings{
         ambientFactor,
         specularPower,
         shadowIntensity,
-        shadowSamples,
         doGammaCorrection, 
         msaaSampleCount,
         maxReflectionBounces,
@@ -44,7 +42,6 @@ export class sceneSettings{
         this.ambientFactor = ambientFactor;
         this.specularPower = specularPower;
         this.shadowIntensity = shadowIntensity;
-        this.shadowSamples = shadowSamples;
         this.doGammaCorrection = doGammaCorrection;
         this.msaaSampleCount = msaaSampleCount;
         this.maxReflectionBounces = maxReflectionBounces;
@@ -118,6 +115,7 @@ export function traceRay(ray, sphereList){
  *  * Phong - Diffuse Lighting
  *  * Phong - Specular Lighting
  *  * Reflections
+ *  * Fresnel Halo/Illumination
  *  * Shadow Casting
  * 
  * @param {maths.Ray3} ray Ray fires from the camera to the screen.
@@ -235,49 +233,22 @@ export function rayColour(
     let colour = diffuseColour
         .added( reflectionColour )
         .added( fresnelColour )
-        
         .scaled( sceneSettings.ambientFactor );
 
         
     // Shadow Casting
+    let shadowRay = new maths.Ray3(
+        rayResult.pos
+            .added( rayResult.normal
+                .scaled(0.05)),
+        globalLight.antiLightDirection );
 
-    // Implement a better shadow cast rather than cubic jitter, 
-    // (very expensive) & looks bad at lower values
+    let shadowRayResult = traceRay( shadowRay, sphereList )
 
-    let shadowHits = 0;
-    let samples = sceneSettings.shadowSamples;
-    samples = 1;
-
-    for (let s = 0; s < samples; s++ ){
-
-        let shadowRay = new maths.Ray3(
-            rayResult.pos
-                .added( rayResult.normal
-                    .scaled(0.05)),
-            
-            globalLight.antiLightDirection
-                // .added( new maths.Vector3(
-                //     (Math.random() - 0.5) * jitterScale,
-                //     (Math.random() - 0.5) * jitterScale,
-                //     (Math.random() - 0.5) * jitterScale
-                //     )
-                // ).normalised() 
-        );
-
-        let shadowRayResult = traceRay( shadowRay, sphereList )
-
-        if (shadowRayResult.t > 0){
-            shadowHits += 1
-            // console.log(shadowColour)
-        } 
-    }
-
-    let shadows = 1 - (shadowHits / samples) * sceneSettings.shadowIntensity;
-    
     // Priorities shadow > specular, so both arent incorrectly applied 
-    if ( shadowHits > 0 ){
+    if (shadowRayResult.t > 0){
         // console.log(shadowColour)
-        colour.scale( shadows )
+        colour.scale( 1 - sceneSettings.shadowIntensity )
     }
 
     // Only adds specular on the primary / first ray in a recursive chain,
@@ -286,6 +257,7 @@ export function rayColour(
         colour.add(specular); 
     }
 
+    // console.log("ambient", sceneSettings.ambientFactor, "albedo", albedo, "Diffuse", diffuse, "Specular", specular)
 
     return colour
 }
